@@ -50,6 +50,7 @@ GENOME_LABELS = ["g" + "".join(map(str, g)) for g in GENOMES]
 
 
 def genome_index(genome):
+    # Binary basis
     return int("".join(map(str, genome)), 2)
 
 
@@ -74,13 +75,20 @@ def expected_match(s1, s2, rounds=ROUNDS, p_noise=0.0):
     for a1 in (0, 1):
         for a2 in (0, 1):
             nxt1, nxt2 = s1[1 + 2 * a1 + a2], s2[1 + 2 * a2 + a1]
+            # trans[s] has the probability distribution of the next outcome given that the
+            # current outcome is s (based on the strategies and noise)
             trans[2 * a1 + a2] = np.outer(played(nxt1), played(nxt2)).ravel()
-
+    # probability distribution of the first outcome (first actions + noise)
     dist = np.outer(played(s1[0]), played(s2[0])).ravel()
     total1 = total2 = 0.0
     for _ in range(rounds):
+        # expected payoff of this round: payoff of each outcome weighted by its probability
         total1 += dist @ pay1
         total2 += dist @ pay2
+        # distribution of the next outcome (law of total probability):
+        #   P(next = i) = sum_j P(next = i | current = j) * P(current = j)
+        # Column i of trans holds P(next = i | current = j) for every j, so this is dist @ trans.
+        # Markov property: with memory 1 the next outcome depends only on the current one.
         dist = dist @ trans
     return total1 / rounds, total2 / rounds
 
@@ -90,8 +98,8 @@ def payoff_matrix(p_noise, rounds=ROUNDS):
     n = len(GENOMES)
     M = np.zeros((n, n))
     for i in range(n):
-        for j in range(n):
-            M[i, j] = expected_match(GENOMES[i], GENOMES[j], rounds, p_noise)[0]
+        for j in range(i, n):  # one match gives both M[i, j] and M[j, i]
+            M[i, j], M[j, i] = expected_match(GENOMES[i], GENOMES[j], rounds, p_noise)
     return M
 
 
