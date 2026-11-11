@@ -32,7 +32,7 @@ MEMORY_COLORS = {1: "#898781", 2: "#2a78d6"}  # grey = memory 1, blue = memory 2
 def save(fig, name):
     os.makedirs(FIG_DIR, exist_ok=True)
     for ext in ("pdf", "png"):
-        fig.savefig(os.path.join(FIG_DIR, f"{name}.{ext}"))
+        fig.savefig(os.path.join(FIG_DIR, f"{name}.{ext}"), bbox_inches="tight")
     plt.close(fig)
 
 
