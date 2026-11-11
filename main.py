@@ -1,9 +1,12 @@
 import csv
 import random
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 from deap import base, creator, tools, algorithms
+
+TABLES_PATH = Path(__file__).parent / "tables"
 
 SEED = 42
 
@@ -14,8 +17,8 @@ CXPB = 0.7          # uniform crossover
 MUT_INDPB = 0.01    # bit-flip probability per bit
 TOURN_SIZE = 3
 ELITISM = 2
-ROUNDS = 150        # rounds per match
-NOISE_LEVELS = [0.0, 0.01, 0.05]
+ROUNDS = 100        # rounds per match
+NOISE_LEVELS = [0.0, 0.01, 0.05, 0.1, 0.25, 0.5]
 
 # Actions: 0 = C, 1 = D.  PAYOFF[(my action, opponent's action)] = my payoff
 T, R, P, S = 5, 3, 1, 0
@@ -120,7 +123,7 @@ def save_csv(history, path):
 if __name__ == "__main__":
     for p_noise in NOISE_LEVELS:
         history = run_ga(p_noise=p_noise)
-        save_csv(history, f"history_noise_{p_noise}.csv")
+        save_csv(history, f"{TABLES_PATH}/history_noise_{p_noise}.csv")
         last = history[-1]
         print(f"p_noise={p_noise}: mean payoff {last['mean_payoff']:.3f} | "
               + ", ".join(f"{name} {last[name]:.0%}" for name in COLUMNS))
