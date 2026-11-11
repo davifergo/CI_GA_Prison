@@ -4,7 +4,7 @@ Writes:
   results/summary.txt               all tables (pilot, final payoff, tests, strategies, invasion)
   results/final_per_run.csv         the response variable of every run
   results/stats_pairwise.csv        median difference + bootstrap CI, A12, Mann-Whitney (Holm)
-  figures/*.pdf and *.png           figures for the report
+  report/figures/*.pdf               figures for the report (vector PDF, one file per plot)
 """
 import csv
 import itertools
@@ -18,7 +18,7 @@ from scipy.stats import mannwhitneyu
 
 from main import NOISE_LEVELS, N_GEN, RESULTS_DIR, COLUMNS, NAMED, GENOME_LABELS, genome_index
 
-FIG_DIR = "figures"
+FIG_DIR = os.path.join("report", "figures")
 LAST = 100            # response variable: average over the last LAST generations
 N_PILOT = 10
 N_BOOT = 10_000
@@ -31,11 +31,14 @@ STRAT_COLORS = {"ALLC": "#2a78d6", "ALLD": "#eb6834", "TFT": "#1baf7a",
 INK, INK2, MUTED, GRID = "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
 
 plt.rcParams.update({
-    "font.size": 9, "axes.titlesize": 10, "axes.labelsize": 9, "legend.fontsize": 8,
+    "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
+    "axes.formatter.use_mathtext": True, "axes.unicode_minus": False,
+    "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8, "legend.fontsize": 8,
+    "xtick.labelsize": 7, "ytick.labelsize": 7, "pdf.fonttype": 42,
     "axes.edgecolor": "#c3c2b7", "axes.labelcolor": INK2, "xtick.color": MUTED, "ytick.color": MUTED,
     "text.color": INK, "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6,
     "axes.spines.top": False, "axes.spines.right": False, "lines.linewidth": 1.6,
-    "legend.frameon": False, "savefig.bbox": "tight", "savefig.dpi": 200,
+    "legend.frameon": False, "savefig.dpi": 300,
 })
 
 
@@ -88,8 +91,7 @@ def holm(pvals):
 
 def save(fig, name):
     os.makedirs(FIG_DIR, exist_ok=True)
-    for ext in ("pdf", "png"):
-        fig.savefig(os.path.join(FIG_DIR, f"{name}.{ext}"))
+    fig.savefig(os.path.join(FIG_DIR, f"{name}.pdf"))
     plt.close(fig)
 
 
@@ -198,103 +200,139 @@ def main():
                        f"vs {sub[i, i]:.3f})")
         out.append("")
 
+    # ---------- regime transitions (dominant strategy > 50% for >= 10 generations) ----------
+    out.append("REGIMES: a regime = one strategy above 50% for at least 10 consecutive generations")
+    for p in NOISE_LEVELS:
+        trans, n_switch = {}, 0
+        for r in range(n_runs):
+            regimes, cur, length = [], None, 0
+            for g in range(N_GEN + 1):
+                best = max(COLUMNS, key=lambda c: hist[p][c][r, g])
+                d = best if hist[p][best][r, g] > 0.5 else None
+                cur, length = (d, length + 1) if d == cur else (d, 1)
+                if length == 10 and d and (not regimes or regimes[-1] != d):
+                    regimes.append(d)
+            n_switch += len(regimes) > 1
+            for a, b in zip(regimes, regimes[1:]):
+                trans[(a, b)] = trans.get((a, b), 0) + 1
+        time_frac = {c: float((hist[p][c][:, 100:] > 0.5).mean()) for c in COLUMNS}
+        out.append(f"  p_noise={p}: runs with >= 1 change of regime: {n_switch}/{n_runs}; transitions: "
+                   + ", ".join(f"{a}->{b} {n}" for (a, b), n in sorted(trans.items(), key=lambda kv: -kv[1])))
+        out.append("    fraction of generations 101-500 with a strategy > 50%: "
+                   + ", ".join(f"{c} {v:.2f}" for c, v in time_frac.items() if v > 0.005))
+        mask = hist[p]["OTHER"] > 0.5
+        if mask.any():
+            top = sorted(((lab[1:], float(hist[p][lab][mask].mean())) for lab in GENOME_LABELS),
+                         key=lambda kv: -kv[1])[:4]
+            out.append("    genomes when OTHER > 50%: " + ", ".join(f"{g} {v:.2f}" for g, v in top))
+    out.append("")
+
+    # ---------- one-bit mutants of the residents (near-neutral drift paths) ----------
+    out.append("ONE-BIT MUTANTS: pi(mutant, resident) - pi(resident, resident)  (> 0 invades, ~0 neutral drift)")
+    for p in NOISE_LEVELS:
+        for res in ("TFT", "GRIM", "ALLD"):
+            g = next(k for k, v in NAMED.items() if v == res)
+            r = genome_index(g)
+            muts = [tuple(b ^ (i == k) for i, b in enumerate(g)) for k in range(len(g))]
+            out.append(f"  p_noise={p} resident {res:>4}: " + ", ".join(
+                f"{''.join(map(str, x))} {mats[p][genome_index(x), r] - mats[p][r, r]:+.3f}" for x in muts))
+    out.append("")
+
     text = "\n".join(out)
     with open(os.path.join(RESULTS_DIR, "summary.txt"), "w") as f:
         f.write(text + "\n")
     print(text)
 
     # ================= FIGURES =================
-    labels = {p: f"$p_{{noise}}$ = {p}" for p in NOISE_LEVELS}
+    # One file per plot, drawn at its final size in the report (A4, text width 16.6 cm = 6.5 in;
+    # a third of the width = 2.1 in), so the fonts appear at their real size.
+    os.makedirs(FIG_DIR, exist_ok=True)
+    FULL, THIRD = 6.4, 2.1
+    tag = {p: f"p{str(p).replace('.', '')}" for p in NOISE_LEVELS}   # 0.01 -> p001
+    lab_noise = {p: rf"$p_{{\mathrm{{noise}}}}={p}$" for p in NOISE_LEVELS}
+
+    # legend shared by all the strategy figures
+    fig = plt.figure(figsize=(FULL, 0.28))
+    handles = [plt.Line2D([], [], color=STRAT_COLORS[c], lw=2, ls=":" if c == "OTHER" else "-")
+               for c in COLUMNS]
+    fig.legend(handles, [c if c != "OTHER" else "OTRAS" for c in COLUMNS], loc="center",
+               ncol=len(COLUMNS), handlelength=1.8, columnspacing=1.6)
+    save(fig, "leyenda_estrategias")
 
     # 1. mean payoff over generations: median and IQR across runs
-    fig, ax = plt.subplots(figsize=(6.2, 3.2))
+    fig, ax = plt.subplots(figsize=(FULL, 2.5), layout="constrained")
     for p in NOISE_LEVELS:
         y = hist[p]["mean_payoff"]
         med, q1, q3 = np.median(y, 0), *np.percentile(y, [25, 75], axis=0)
         ax.fill_between(gens, q1, q3, color=NOISE_COLORS[p], alpha=0.18, lw=0)
-        ax.plot(gens, med, color=NOISE_COLORS[p], label=labels[p])
-        ax.annotate(labels[p], (gens[-1], med[-1]), xytext=(4, 0), textcoords="offset points",
-                    va="center", fontsize=8, color=INK2)
-    ax.axhline(3, color=MUTED, lw=0.8, ls="--")
-    ax.axhline(1, color=MUTED, lw=0.8, ls="--")
-    ax.text(5, 3.03, "full cooperation (R = 3)", fontsize=7, color=MUTED, va="bottom")
-    ax.text(5, 1.03, "full defection (P = 1)", fontsize=7, color=MUTED, va="bottom")
-    ax.set(xlabel="generation", ylabel="mean payoff per round", xlim=(0, N_GEN), ylim=(0.8, 3.2))
-    ax.set_title(f"Mean payoff of the population (median and IQR of {n_runs} runs)", loc="left")
-    save(fig, "fig1_mean_payoff")
+        ax.plot(gens, med, color=NOISE_COLORS[p], lw=1.3)
+        ax.annotate(lab_noise[p], (gens[-1], med[-1]), xytext=(4, 0), textcoords="offset points",
+                    va="center", color=INK2)
+    for yv, txt in ((3, "cooperación total ($R=3$)"), (1, "traición total ($P=1$)")):
+        ax.axhline(yv, color=MUTED, lw=0.7, ls="--")
+        ax.text(6, yv + 0.03, txt, fontsize=7, color=MUTED, va="bottom")
+    ax.set(xlabel="generación", ylabel="pago medio por ronda", xlim=(0, N_GEN), ylim=(0.8, 3.2))
+    save(fig, "fig_pago_medio")
 
-    # 2. strategy frequencies over generations (mean across runs), one panel per noise level
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.6), sharey=True)
-    for ax, p in zip(axes, NOISE_LEVELS):
-        for c in COLUMNS:
-            ax.plot(gens, hist[p][c].mean(0), color=STRAT_COLORS[c], lw=1.4,
-                    ls=":" if c == "OTHER" else "-", label=c)
-        ax.set_title(labels[p], loc="left")
-        ax.set(xlabel="generation", xlim=(0, N_GEN), ylim=(0, 1))
-    axes[0].set_ylabel("frequency (mean of runs)")
-    axes[-1].legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
-    save(fig, "fig2_strategy_frequencies")
-
-    # 3. final mean payoff per run: boxplot + points
-    fig, ax = plt.subplots(figsize=(4.2, 3.0))
-    data = [final[p] for p in NOISE_LEVELS]
-    bp = ax.boxplot(data, widths=0.5, patch_artist=True, showfliers=False,
-                    medianprops=dict(color=INK, lw=1.4))
+    # 2. final mean payoff per run: boxplot + points
+    fig, ax = plt.subplots(figsize=(3.1, 2.4), layout="constrained")
+    bp = ax.boxplot([final[p] for p in NOISE_LEVELS], widths=0.5, patch_artist=True, showfliers=False,
+                    medianprops=dict(color=INK, lw=1.2))
     for patch, p in zip(bp["boxes"], NOISE_LEVELS):
         patch.set(facecolor=NOISE_COLORS[p], alpha=0.25, edgecolor=NOISE_COLORS[p])
     jit = np.random.default_rng(0)
     for i, p in enumerate(NOISE_LEVELS, start=1):
-        ax.scatter(i + jit.uniform(-0.12, 0.12, len(final[p])), final[p], s=12,
-                   color=NOISE_COLORS[p], edgecolor="white", linewidth=0.5, zorder=3)
+        ax.scatter(i + jit.uniform(-0.13, 0.13, n_runs), final[p], s=9, color=NOISE_COLORS[p],
+                   edgecolor="white", linewidth=0.4, zorder=3)
     ax.set_xticks(range(1, len(NOISE_LEVELS) + 1), [str(p) for p in NOISE_LEVELS])
-    ax.set(xlabel="$p_{noise}$", ylabel=f"mean payoff, last {LAST} generations")
-    ax.set_title(f"Final mean payoff ({n_runs} runs each)", loc="left")
-    save(fig, "fig3_final_payoff")
+    ax.set(xlabel=r"$p_{\mathrm{noise}}$", ylabel=f"pago medio (últimas {LAST} gen.)")
+    save(fig, "fig_pago_final")
 
-    # 4. payoff matrices of the named strategies
-    fig, axes = plt.subplots(1, 3, figsize=(7.4, 2.7))
-    for ax, p in zip(axes, NOISE_LEVELS):
-        sub = mats[p][np.ix_(idx, idx)]
-        im = ax.imshow(sub, cmap="Blues", vmin=0, vmax=5)
-        for i in range(len(names)):
-            for j in range(len(names)):
-                ax.text(j, i, f"{sub[i, j]:.2f}", ha="center", va="center", fontsize=6,
-                        color="white" if sub[i, j] > 3.2 else INK)
-        ax.set_xticks(range(len(names)), names, rotation=90, fontsize=7)
-        ax.set_yticks(range(len(names)), names if ax is axes[0] else [], fontsize=7)
-        ax.grid(False)
-        ax.set_title(labels[p], loc="left")
-    fig.colorbar(im, ax=axes, shrink=0.8, label="payoff of row vs column")
-    save(fig, "fig4_payoff_matrices")
-
-    # 5. one example run per noise level (shows the dynamics and cycles that averages hide)
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.6), sharey=True)
-    for ax, p in zip(axes, NOISE_LEVELS):
+    for p in NOISE_LEVELS:
+        # 3. strategy frequencies over generations (mean across runs)
+        fig, ax = plt.subplots(figsize=(THIRD, 1.75), layout="constrained")
         for c in COLUMNS:
-            ax.plot(gens, hist[p][c][0], color=STRAT_COLORS[c], lw=1.0,
-                    ls=":" if c == "OTHER" else "-", label=c)
-        ax.set_title(f"{labels[p]}, run 0", loc="left")
-        ax.set(xlabel="generation", xlim=(0, N_GEN), ylim=(0, 1))
-    axes[0].set_ylabel("frequency")
-    axes[-1].legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
-    save(fig, "fig5_example_runs")
+            ax.plot(gens, hist[p][c].mean(0), color=STRAT_COLORS[c], lw=1.0,
+                    ls=":" if c == "OTHER" else "-")
+        ax.set(xlabel="generación", ylabel="frecuencia media", xlim=(0, N_GEN), ylim=(0, 1))
+        save(fig, f"fig_frecuencias_{tag[p]}")
 
-    # 6. final composition of each run (stacked bars), sorted by payoff
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.6), sharey=True)
-    for ax, p in zip(axes, NOISE_LEVELS):
+        # 4. final composition of each run, sorted by final payoff
+        fig, ax = plt.subplots(figsize=(THIRD, 1.75), layout="constrained")
         order = np.argsort(final[p])
         bottom = np.zeros(n_runs)
         for c in COLUMNS:
             v = final_freq[p][c][order]
-            ax.bar(range(n_runs), v, bottom=bottom, width=0.9, color=STRAT_COLORS[c],
-                   edgecolor="white", linewidth=0.3, label=c)
+            ax.bar(range(n_runs), v, bottom=bottom, width=0.85, color=STRAT_COLORS[c], linewidth=0)
             bottom += v
-        ax.set_title(labels[p], loc="left")
-        ax.set(xlabel="run (sorted by final payoff)", ylim=(0, 1), xticks=[])
+        ax.set(xlabel="ejecución (orden por pago)", ylabel="frecuencia", ylim=(0, 1), xlim=(-0.7, n_runs - 0.3),
+               xticks=[])
         ax.grid(False)
-    axes[0].set_ylabel(f"frequency, last {LAST} gen.")
-    axes[-1].legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
-    save(fig, "fig6_final_composition")
+        save(fig, f"fig_composicion_{tag[p]}")
+
+        # 5. one example run (shows the cycles that the averages hide)
+        fig, ax = plt.subplots(figsize=(THIRD, 1.75), layout="constrained")
+        for c in COLUMNS:
+            ax.plot(gens, hist[p][c][0], color=STRAT_COLORS[c], lw=0.8,
+                    ls=":" if c == "OTHER" else "-")
+        ax.set(xlabel="generación", ylabel="frecuencia", xlim=(0, N_GEN), ylim=(0, 1))
+        save(fig, f"fig_ejecucion_{tag[p]}")
+
+        # 6. payoff matrix of the named strategies
+        fig, ax = plt.subplots(figsize=(THIRD, 2.05), layout="constrained")
+        sub = mats[p][np.ix_(idx, idx)]
+        ax.imshow(sub, cmap="Blues", vmin=0, vmax=5)
+        for i in range(len(names)):
+            for j in range(len(names)):
+                ax.text(j, i, f"{sub[i, j]:.2f}", ha="center", va="center", fontsize=5.6,
+                        color="white" if sub[i, j] > 3.2 else INK)
+        short = [n if n != "PAVLOV" else "PAVL." for n in names]
+        ax.set_xticks(range(len(names)), short, rotation=90)
+        ax.set_yticks(range(len(names)), short)
+        ax.tick_params(labelsize=6.5, length=0)
+        ax.set_xlabel("columna (oponente)", fontsize=7)
+        ax.grid(False)
+        save(fig, f"fig_matriz_{tag[p]}")
 
 
 if __name__ == "__main__":

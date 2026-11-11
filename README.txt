@@ -30,7 +30,9 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
    results/final_per_run.csv           response variable of every run.
    results/stats_pairwise.csv          pairwise comparisons between noise levels.
    results/summary.txt                 all the tables used in the report.
-   figures/fig*.pdf / .png             figures of the report.
+   report/main.tex                     the report (LaTeX; upload the report/ folder to Overleaf).
+   report/figures/*.pdf                figures of the report, one vector PDF per plot.
+   report/robustness.py                extra check (longer matches, higher noise) cited in the report.
 
 4. MODEL
 --------
