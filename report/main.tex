@@ -1,0 +1,380 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}   % XeLaTeX / LuaLaTeX: Latin Modern by default
+\fi
+\usepackage[english]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\captionsetup{font=small,labelfont=bf}
+\captionsetup[sub]{font=small}
+\graphicspath{{figures/}}
+\newcommand{\pn}{p_{\text{noise}}}
+\newcommand{\Atwelve}{\hat{A}_{12}}
+\newcommand{\g}[1]{\texttt{#1}}   % genome
+
+% Three panels side by side (one per noise level), each drawn at its final size
+\newcommand{\threepanels}[1]{%
+  \begin{subfigure}[t]{0.32\textwidth}\includegraphics[width=\textwidth]{#1_p00}\caption{$\pn=0$}\end{subfigure}\hfill
+  \begin{subfigure}[t]{0.32\textwidth}\includegraphics[width=\textwidth]{#1_p001}\caption{$\pn=0.01$}\end{subfigure}\hfill
+  \begin{subfigure}[t]{0.32\textwidth}\includegraphics[width=\textwidth]{#1_p005}\caption{$\pn=0.05$}\end{subfigure}}
+
+\title{\textbf{The iterated prisoner's dilemma:\\ when does cooperation emerge?}\\[4pt]
+\large Computational Intelligence (MAI): evolutionary computation practical work, exercise 8}
+\author{David Fernández Gómez \and Pol Marsol Torras}
+\date{12 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent We study whether cooperation emerges and persists in a population of memory-1 strategies for the
+iterated prisoner's dilemma evolved with a genetic algorithm, and how the answer depends on the level of
+action noise, $\pn \in \{0, 0.01, 0.05\}$. With 30 independent runs per level, the final mean payoff drops
+from $2.98$ (almost full cooperation, dominated by TFT) to $2.01$ with $\pn=0.01$ and to $1.17$ with
+$\pn=0.05$ ($\Atwelve=1$ in all three comparisons). The initial hypothesis holds without noise and with
+high noise, but fails with moderate noise, where GRIM wins instead of the forgiving strategy PAVLOV.
+We explain this with the matrix of expected payoffs: with noise, PAVLOV can be invaded by ALLD and by GRIM,
+whereas GRIM and ALLD cannot be invaded by any memory-1 strategy. In a finite population with mutation,
+however, almost neutral paths connect them, and these produce cycles of cooperation and exploitation with
+$\pn=0.01$ and alternations between ALLD and GRIM with $\pn=0.05$.
+\end{abstract}
+
+%=====================================================================
+\section{Question and hypothesis}
+%=====================================================================
+In the prisoner's dilemma two players simultaneously choose to cooperate (C) or defect (D), with payoffs
+$T=5$ (defecting against a cooperator), $R=3$ (mutual cooperation), $P=1$ (mutual defection) and $S=0$
+(cooperating with a defector). Since $T>R>P>S$, defection dominates in a single round; since $2R>T+S$,
+sustained cooperation is better than alternating exploitation. In the iterated version the same players
+play $N_r=150$ rounds and can condition their action on the past, which makes reciprocity possible
+\cite{axelrod1987}. With \emph{noise}, each intended action is flipped with probability $\pn$; it is known
+that TIT-FOR-TAT (TFT) then gets trapped in mutual retaliation, whereas \emph{win--stay, lose--shift}
+(PAVLOV) corrects it \cite{nowak1993,wu1995}.
+
+\paragraph{Question.} Does cooperation emerge and remain stable in an evolving population, and how does
+the answer depend on the noise level?
+
+\paragraph{Hypothesis (stated before the experiments).} We adopt the hypothesis proposed in the exercise,
+split into three falsifiable predictions:
+\begin{description}
+  \item[H1] Without noise the population evolves towards TFT-like strategies and cooperation is almost
+        full. \emph{It would be refuted} if the final mean payoff were clearly below $R=3$ (e.g.\ $<2.5$)
+        or if TFT were not the majority strategy.
+  \item[H2] With moderate noise ($\pn=0.01$) forgiving, PAVLOV-like strategies dominate. \emph{It would be
+        refuted} if PAVLOV were not the most frequent cooperative strategy at the end of the runs.
+  \item[H3] With high noise ($\pn=0.05$) cooperation collapses. \emph{It would be refuted} if the final mean
+        payoff did not approach $P=1$ and defecting strategies did not dominate.
+\end{description}
+
+%=====================================================================
+\section{Experimental design}
+%=====================================================================
+\paragraph{Representation.} A memory-1 strategy is a 5-bit lookup table (0\,=\,C, 1\,=\,D): the first
+action and the response to each outcome of the previous round, CC, CD, DC, DD (own action first). There
+are only $2^5=32$ strategies, so they can be named and their frequencies tracked: ALLC \g{00000}, ALLD
+\g{11111}, TFT \g{00101}, PAVLOV \g{00110}, GRIM \g{00111} and STFT \g{10101} (TFT that starts by
+defecting). The rest are grouped as OTHER.
+
+\paragraph{Fitness: exact expected payoff.} Each individual plays against all the others (round robin,
+without playing against itself) and its fitness is the mean payoff per round, so that 3 corresponds to full
+cooperation and 1 to full defection. Since fitness depends on the rest of the population, this is
+coevolution, and the whole population is re-evaluated in every generation. With memory-1 strategies, the
+outcome of a round is a 4-state Markov chain (CC, CD, DC, DD) whose transitions depend on both tables and
+on $\pn$; propagating the distribution for 150 rounds gives the exact \emph{expected} payoff of each pair.
+We thus compute, once per noise level, the $32\times 32$ payoff matrix. This is preferable to simulating
+one noisy match per pair: a single match has a large variance (e.g.\ GRIM against GRIM with $\pn=0.01$:
+mean 1.66, standard deviation 0.55 across matches), and if it is reused for every copy of the same pair, a
+single stroke of luck decides the fitness of a whole class of strategies. In a preliminary test with
+simulation, this source of error even changed the dominant strategy with $\pn=0.05$.
+
+\paragraph{Genetic algorithm and fixed parameters.} We use DEAP \cite{deap} with the values suggested in
+the exercise (Table~\ref{tab:params}), which correspond to a standard GA: uniform crossover is natural
+because the 5 bits have no relevant order, and $p_m=0.01$ per bit produces a mutant in about 5\,\% of the
+offspring of each generation, enough for the population to be continuously exposed to invading strategies.
+Elitism of 2 keeps the best strategy from being lost by chance.
+
+\begin{table}[h]
+\centering\small
+\caption{Parameters of the experiment. Only $\pn$ is manipulated.}\label{tab:params}
+\begin{tabular}{ll@{\hspace{2.5em}}ll}
+\toprule
+Population & 100 & Selection & tournament of size 3 \\
+Generations & 500 & Crossover & uniform, $p_c=0.7$ \\
+Rounds per match $N_r$ & 150 & Mutation & bit-flip, $p_m=0.01$ per bit \\
+Payoffs $(T,R,P,S)$ & $(5,3,1,0)$ & Elitism & 2 individuals \\
+Factor & $\pn\in\{0,\,0.01,\,0.05\}$ & Runs & 30 per level (independent seeds) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Factor, control and response variable.} The only factor is $\pn$. The level $\pn=0$ is the
+\emph{control}: its outcome is predictable from classical theory \cite{axelrod1987} (reciprocal strategies
+cooperate with each other and cannot be exploited). The response variable of each run is the mean payoff of
+the population averaged over the last 100 generations; averaging over time prevents the result from
+depending on the point of an oscillation at which the run ends. As a measure of the mechanism we record, in
+every generation, the frequency of the 32 strategies, and we call a \emph{regime} a period of at least 10
+generations in which the same strategy exceeds 50\,\% of the population.
+
+\paragraph{Number of runs and statistics.} A pilot of 10 runs per level gave standard deviations of 0.002,
+0.08 and 0.21 for $\pn=0$, 0.01 and 0.05, with a 95\,\% confidence interval of the median of $\pm0.17$ in
+the most variable case. Although the differences between levels were already clear ($\Atwelve=1$), with
+$\pn=0.05$ the distribution turned out to be bimodal (Section~\ref{sec:res}), so we set 30 runs per level,
+which reduces that interval to $\pm0.08$ and allows us to estimate the proportion of each outcome. Each
+level $k$ uses seeds $100k,\dots,100k+29$, so the samples are independent. For each pair of levels we report
+the difference of medians with a 95\,\% percentile bootstrap interval (10\,000 resamples) \cite{efron1993},
+the Vargha--Delaney $\Atwelve$ statistic \cite{vargha2000,arcuri2011} and the two-sided Mann--Whitney test
+with Holm's correction for multiple comparisons \cite{holm1979}.
+
+%=====================================================================
+\section{Results}\label{sec:res}
+%=====================================================================
+Figure~\ref{fig:payoff} shows the evolution of the mean payoff. Without noise, the median reaches almost
+full cooperation ($>2.95$) in 9 generations and keeps it. With $\pn=0.01$ the median across runs oscillates
+around 1.7 with frequent peaks of cooperation (these peaks are why the per-run time average, our response
+variable, has a higher median, 2.01), and with $\pn=0.05$ it quickly drops to about 1.2.
+Table~\ref{tab:stats} and Figure~\ref{fig:final} summarise the response variable: the three levels are
+completely separable ($\Atwelve=1$ in all comparisons, i.e.\ any run with less noise beats any run with more
+noise), and the differences of medians are large compared with their intervals. The intervals with
+$\pn=0.05$ are asymmetric because the distribution is bimodal: 18 runs are concentrated at 1.17 and the
+other 12 are spread between 1.24 and 1.76.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_mean_payoff}
+\caption{Mean payoff per round of the population over the generations: median (line) and interquartile
+range (band) of the 30 runs of each noise level.}\label{fig:payoff}
+\end{figure}
+
+\begin{figure}[t]
+\begin{minipage}[c]{0.47\textwidth}
+\centering
+\includegraphics[width=\textwidth]{fig_final_payoff}
+\captionof{figure}{Response variable (mean payoff over the last 100 generations) of each of the 90
+runs.}\label{fig:final}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.5\textwidth}
+\centering\small
+\captionof{table}{Mean payoff over the last 100 generations (30 runs per level): median with 95\,\%
+bootstrap CI, and pairwise comparisons (Mann--Whitney $p$ with Holm's correction).}\label{tab:stats}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+$\pn$ & Median [95\,\% CI] & Min.--max. \\
+\midrule
+0     & 2.978 [2.977, 2.979] & 2.963--2.983 \\
+0.01  & 2.013 [1.976, 2.046] & 1.766--2.193 \\
+0.05  & 1.171 [1.169, 1.325] & 1.166--1.761 \\
+\midrule
+Comparison & Diff.\ of medians [95\,\% CI] & $\Atwelve$ \\
+\midrule
+0 vs 0.01    & $+0.966$ [$+0.932$, $+1.002$] & 1.00 \\
+0 vs 0.05    & $+1.808$ [$+1.653$, $+1.809$] & 1.00 \\
+0.01 vs 0.05 & $+0.842$ [$+0.679$, $+0.875$] & 1.00 \\
+\bottomrule
+\multicolumn{3}{@{}l}{\footnotesize In all three comparisons, $p_{\text{Holm}}=9\cdot10^{-11}$.}
+\end{tabular}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{strategy_legend}\\[2pt]
+\threepanels{fig_frequencies}
+\caption{Frequency of the named strategies over the generations (mean of the 30 runs).}\label{fig:freq}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{strategy_legend}\\[2pt]
+\threepanels{fig_composition}
+\caption{Composition of each run, averaged over the last 100 generations. Each bar is a run, sorted from
+lowest to highest final payoff.}\label{fig:comp}
+\end{figure}
+
+\paragraph{Which strategies win.} Figures~\ref{fig:freq} and \ref{fig:comp} show the composition of the
+population. We say that a strategy dominates a run if it exceeds 50\,\% of the population on average over
+the last 100 generations.
+\begin{itemize}
+  \item \textbf{$\pn=0$:} TFT dominates in 29 of 30 runs (median 78\,\%) and holds a regime 90\,\% of the
+        time from generation 100 onwards. Almost all the rest (OTHER, 17\,\%) is the genome \g{00100},
+        which differs from TFT only in its response to DD; among cooperators that entry is never used, so
+        it is a neutral variant that drifts freely. \textbf{H1 is confirmed.}
+  \item \textbf{$\pn=0.01$:} GRIM dominates in 19 of 30 runs (median 53\,\%), followed by TFT (13\,\%).
+        PAVLOV does not exceed a median of 5\,\% and dominates no run. \textbf{H2 is refuted.}
+  \item \textbf{$\pn=0.05$:} ALLD dominates in 19 runs (with 95\,\% of the population) and GRIM in 9; in
+        the remaining 2 both coexist. The median payoff drops to 1.17. \textbf{H3 is confirmed}, although
+        not every run ends in the same state.
+\end{itemize}
+
+%=====================================================================
+\section{Mechanism}\label{sec:mech}
+%=====================================================================
+To explain these results we use the matrix of expected payoffs of the classical strategies
+(Figure~\ref{fig:matrix}), computed with the same exact model as the fitness. In a large population made
+almost entirely of a resident strategy $X$, a mutant $Y$ can invade it if $\pi(Y,X)>\pi(X,X)$, or if
+$\pi(Y,X)=\pi(X,X)$ and $\pi(Y,Y)>\pi(X,Y)$, where $\pi(A,B)$ is the payoff of $A$ against $B$.
+Table~\ref{tab:inv} applies this criterion to each noise level. Moreover, since mutation usually changes a
+single bit, we also look at the advantage $\pi(Y,X)-\pi(X,X)$ of the 5 one-bit mutants of each resident: if
+it is almost zero, the mutant can spread by drift even if it does not invade.
+
+\begin{figure}[t]
+\centering
+\threepanels{fig_matrix}
+\caption{Expected payoff per round of the row strategy against the column strategy (150 rounds). The
+darker the cell, the higher the payoff.}\label{fig:matrix}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Invasion analysis: named strategies that can invade a population of the resident. ``Not
+invadable'' means that none of the 32 memory-1 strategies obtains against the resident a payoff equal to or
+higher than the resident itself.}\label{tab:inv}
+\begin{tabular}{llll}
+\toprule
+Resident & $\pn=0$ & $\pn=0.01$ & $\pn=0.05$ \\
+\midrule
+ALLC   & ALLD, STFT & all & all \\
+ALLD   & none & not invadable & not invadable \\
+TFT    & none & ALLC & ALLC \\
+PAVLOV & ALLD & ALLD, GRIM & ALLD, GRIM \\
+GRIM   & none & not invadable & not invadable \\
+STFT   & ALLC, TFT, PAVLOV, GRIM & ALLC, TFT, PAVLOV & ALLC, TFT, PAVLOV \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Without noise.} TFT, PAVLOV, GRIM and ALLC all obtain 3 against each other, so selection among
+them is neutral. They differ in how they respond to the defecting mutants that the mutation operator
+keeps generating. PAVLOV can be invaded by ALLD: against ALLD it alternates C and D and
+obtains only 0.5, whereas TFT and GRIM obtain 0.99. The two one-bit mutants of TFT that defect (STFT
+\g{10101}, which starts with D, and \g{01101}, which defects after CC) drag TFT into an alternation of
+retaliation that gives it a payoff of about 2.5, whereas GRIM punishes forever and obtains only 1.02--1.03.
+This is why GRIM dominates in the first generations, while there are still many defectors (initial peak in
+Figure~\ref{fig:freq}a), but TFT displaces it in 25 of the 30 runs once the population cooperates, because
+it earns more than GRIM or PAVLOV against its own mutants.
+
+\paragraph{With moderate noise ($\pn=0.01$).} Noise breaks the equilibrium of TFT: one error triggers a
+chain of alternating retaliation, and the payoff of TFT against TFT drops to 2.52. More forgiving variants
+of TFT, such as ALLC or the one-bit mutants \g{00001} (which does not retaliate after being exploited) and
+\g{00100} (which returns to cooperation after mutual defection), obtain more than TFT against TFT
+(advantages of $+0.43$ and $+0.20$ for the two mutants) and invade it. Such a population is then exploited
+by GRIM (4.00 against ALLC) and ALLD (4.94). PAVLOV, which obtains much more against itself (2.95) than TFT
+(2.52) or GRIM (1.66), can be invaded by ALLD (2.99) and by GRIM (2.98), which exploit the fact that PAVLOV
+returns to cooperation after mutual defection. In contrast, GRIM cannot be invaded by \emph{any} of the 32
+memory-1 strategies, although TFT is almost tied with it (1.655 versus 1.658). GRIM is therefore the usual
+attractor (it holds a regime 50\,\% of the time), and because it is almost neutral with respect to TFT the
+population can cycle: GRIM drifts towards TFT, the forgiving variants invade TFT, and GRIM exploits them again. In 22
+of the 30 runs there is at least one change of regime, and in the periods dominated by OTHER the most
+common genomes are precisely \g{00100} and \g{00001} (17\,\% each), followed by TFT and ALLC.
+Figure~\ref{fig:cycles}b shows these cycles in one run. They produce the cooperation peaks of
+Figure~\ref{fig:payoff}, and they are why the final mean payoff (2.01) is higher than that of a pure GRIM
+population (1.66).
+
+\paragraph{With high noise ($\pn=0.05$).} Errors are so frequent (in a pair, one every 10 rounds on
+average) that no reciprocal strategy sustains cooperation: TFT against TFT obtains 2.30 and PAVLOV is
+exploited by ALLD (2.93 versus 2.78). Only two non-invadable states remain, ALLD and GRIM, and each is
+stable against the other: ALLD obtains 1.18 against GRIM, less than GRIM against GRIM (1.31), and GRIM
+obtains 1.14 against ALLD, less than ALLD against ALLD (1.15). However, the population does not stay fixed
+in one of them: it spends 57\,\% of the time in an ALLD regime and 34\,\% in a GRIM regime, and 18 of the 30
+runs change regime at least once. Almost neutral mutants make these transitions possible: the one-bit
+mutants \g{10111} and \g{01111} of ALLD lose only 0.002 and 0.006 with respect to ALLD, so they spread by
+drift, and \g{10111} (GRIM that starts by defecting, the most frequent genome in the OTHER phases) is a
+single bit away from GRIM. The bimodality of Figure~\ref{fig:comp}c is therefore a snapshot of a process that
+alternates between two defecting states (Figure~\ref{fig:cycles}c).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{strategy_legend}\\[2pt]
+\threepanels{fig_run}
+\caption{Dynamics of a single run per noise level (run 0). With $\pn=0.01$ there are cycles between GRIM
+and cooperative variants; with $\pn=0.05$, a long ALLD phase followed by a switch to GRIM.}
+\label{fig:cycles}
+\end{figure}
+
+\paragraph{Why does PAVLOV not win?} In the classical result in favour of PAVLOV \cite{nowak1993}, obtained
+with stochastic strategies, PAVLOV only takes over after TFT-like strategies have eliminated the defectors.
+With deterministic memory-1 strategies, PAVLOV has a structural weakness: against an unconditional defector
+it cooperates every other round. With our mutation operator, ALLD and GRIM reappear continuously and
+exploit that weakness before PAVLOV can establish itself.
+
+%=====================================================================
+\section{Limitations}
+%=====================================================================
+\begin{itemize}
+  \item We only consider deterministic memory-1 strategies. More complex strategies (memory~2, finite
+        state machines) or stochastic ones (\emph{generous TFT}) might sustain cooperation under noise. We
+        did not study the extension proposed in the exercise; our conclusions refer to the space of 32
+        strategies.
+  \item We use a single set of GA parameters. The population of 100, $p_m=0.01$ and the tournament of 3
+        set the strength of drift and selection. Since regime changes depend on almost neutral mutants, a
+        different population size or mutation rate would change their frequency, and perhaps the stability
+        of PAVLOV.
+  \item An individual does not play against itself. With a population of 100 the
+        effect is small, but not zero.
+  \item The mean payoff mixes cooperation and noise: with high noise, even ALLD against ALLD
+        obtains more than 1, because errors produce involuntary cooperation. This is why we complement
+        the payoff with the composition of the population.
+  \item The definitions of dominance and regime (50\,\% of the population,
+        10 generations) are our own conventions; the payoffs and the tests do not depend on them.
+  \item In an additional robustness check (10 runs per configuration,
+        \texttt{report/robustness.py}) the conclusions hold with matches of 1000 rounds (TFT dominates in
+        10/10 without noise, GRIM in 6/10 with $\pn=0.01$ and ALLD in 6/10 with $\pn=0.05$) and with more
+        noise ($\pn=0.1$: ALLD in 8/10; $\pn=0.25$: ALLD in 10/10, with a payoff of 1.70 that only reflects
+        the noise). We have not explored the levels between 0 and 0.01 systematically, and the change from
+        TFT to GRIM happens somewhere in that range.
+\end{itemize}
+
+%=====================================================================
+\section{Conclusions}
+%=====================================================================
+In a population of memory-1 strategies evolving with a GA, cooperation emerges and is stable without noise,
+with TFT as the dominant strategy. Just 1\,\% of errors is enough to lose a third of the mean payoff: the
+population becomes dominated by GRIM and goes through cycles of cooperation and exploitation. With 5\,\%,
+cooperation collapses and the population alternates between two defecting states, ALLD and GRIM. The
+hypothesis holds at the extremes, but the forgiving strategy PAVLOV does not win with moderate noise,
+because it can be exploited by ALLD and GRIM, which cannot be invaded by any memory-1 strategy. The invasion
+analysis on the matrix of expected payoffs, together with the almost neutral mutants, accounts for the
+cycles and for the bimodality.
+
+\paragraph{Reproducibility.} All the code, seeds and instructions are in \texttt{README.txt}:
+\texttt{python main.py} runs the experiment and \texttt{python analysis.py} generates all the tables
+(\texttt{results/summary.txt}) and the figures of this report.
+
+\paragraph{Use of generative AI tools.} We used Claude (Anthropic, Claude Opus 5.5 model, November 2026)
+as an assistant to review the initial code (it detected the problem of reusing a single noisy match per
+pair), to propose and write the exact computation of the expected payoff, the statistical analysis and
+figure script, a first draft of this report and its English translation. All the results were obtained by
+running our code, and we have reviewed, verified and edited the final text.
+
+\small
+\begin{thebibliography}{9}
+\bibitem{arcuri2011} A.~Arcuri, L.~Briand. A practical guide for using statistical tests to assess randomized
+  algorithms in software engineering. \emph{Proc.\ ICSE}, 1--10, 2011.
+\bibitem{axelrod1987} R.~Axelrod. The evolution of strategies in the iterated prisoner's dilemma. In
+  L.~Davis (ed.), \emph{Genetic Algorithms and Simulated Annealing}, Pitman, 1987.
+\bibitem{efron1993} B.~Efron, R.~J.~Tibshirani. \emph{An Introduction to the Bootstrap}. Chapman \& Hall, 1993.
+\bibitem{deap} F.-A.~Fortin, F.-M.~De~Rainville, M.-A.~Gardner, M.~Parizeau, C.~Gagné. DEAP: evolutionary
+  algorithms made easy. \emph{Journal of Machine Learning Research} 13:2171--2175, 2012.
+\bibitem{holm1979} S.~Holm. A simple sequentially rejective multiple test procedure. \emph{Scandinavian
+  Journal of Statistics} 6(2):65--70, 1979.
+\bibitem{nowak1993} M.~Nowak, K.~Sigmund. A strategy of win-stay, lose-shift that outperforms tit-for-tat in
+  the Prisoner's Dilemma game. \emph{Nature} 364:56--58, 1993.
+\bibitem{vargha2000} A.~Vargha, H.~D.~Delaney. A critique and improvement of the CL common language effect
+  size statistics of McGraw and Wong. \emph{Journal of Educational and Behavioral Statistics} 25(2):101--132, 2000.
+\bibitem{wu1995} J.~Wu, R.~Axelrod. How to cope with noise in the iterated prisoner's dilemma. \emph{Journal
+  of Conflict Resolution} 39(1):183--189, 1995.
+\end{thebibliography}
+
+\end{document}
