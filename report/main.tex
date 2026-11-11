@@ -50,11 +50,11 @@ We explain this with the matrix of expected payoffs: with noise, PAVLOV can be i
 whereas GRIM and ALLD cannot be invaded by any memory-1 strategy. In a finite population with mutation,
 however, almost neutral paths connect them, and these produce cycles of cooperation and exploitation with
 $\pn=0.01$ and alternations between ALLD and GRIM with $\pn=0.05$.
-% [ES] Añadido (memoria 2): revisar y traducir.
-Como extensión, repetimos el experimento con estrategias de memoria 2 (18 bits). Con ellas la cooperación
-resiste el ruido: el pago final mediano es 2.84 con $\pn=0.01$ y 2.55 con $\pn=0.05$ ($\Atwelve=1$ frente a
-memoria 1), porque dominan estrategias de tipo PAVLOV que castigan una ronda más y que ningún mutante de
-memoria 2 puede invadir.
+
+\noindent As an additional experiment, we repeat the experiment with memory-2 strategies (18 bits). With those,
+cooperation survive the noise: the final mean payoff is 2.84 with with $\pn=0.01$ and 2.55 with $\pn=0.05$
+($\Atwelve=1$ against memory 1). The reason is that PAVLOL-like strategies dominate, as they penalize an extra round
+and no mutant of memory 2 can invade.
 \end{abstract}
 
 %=====================================================================
@@ -97,16 +97,19 @@ defecting). The rest are grouped as OTHER.
 without playing against itself) and its fitness is the mean payoff per round, so that 3 corresponds to full
 cooperation and 1 to full defection. Since fitness depends on the rest of the population, this is
 coevolution, and the whole population is re-evaluated in every generation. With memory-1 strategies, the
-outcome of a round is a 4-state Markov chain (CC, CD, DC, DD) whose transitions depend on both tables and
-on $\pn$; propagating the distribution for 150 rounds gives the exact \emph{expected} payoff of each pair.
-% [ES] Añadido: revisar y traducir.
-Es decir, el pago equivale a la media de infinitas partidas independientes de 150 rondas, y no al resultado
-de una única partida con ruido.
+outcome of a round is a 4-state Markov chain (CC, CD, DC, DD) whose transitions depend on both strategies and
+on $\pn$. We propagate the distribution of probabilities of each state for 150 rounds, giving the exact
+\emph{expected} payoff of each pair. Basically, the resulting payoff is equivalent to the mean of infinite
+independent matches of 150 rounds, not the result of a single match played with random noise, which was our first
+approach.
+
 We thus compute, once per noise level, the $32\times 32$ payoff matrix. This is preferable to simulating
 one noisy match per pair: a single match has a large variance (e.g.\ GRIM against GRIM with $\pn=0.01$:
 mean 1.66, standard deviation 0.55 across matches), and if it is reused for every copy of the same pair, a
 single stroke of luck decides the fitness of a whole class of strategies. In a preliminary test with
-simulation, this source of error even changed the dominant strategy with $\pn=0.05$.
+simulation, this source of error even changed the dominant strategy with $\pn=0.05$. It is true, that the 30 different
+runs could mitigate this, as they would use different random seeds, but, the probability distribution approach is
+superior, as it is equivalent to infinit runs, as we have mentioned previously.
 
 \paragraph{Genetic algorithm and fixed parameters.} We use DEAP \cite{deap} with the values suggested in
 the exercise (Table~\ref{tab:params}), which correspond to a standard GA: uniform crossover is natural
@@ -248,7 +251,9 @@ darker the cell, the higher the payoff.}\label{fig:matrix}
 \centering\small
 \caption{Invasion analysis: named strategies that can invade a population of the resident. ``Not
 invadable'' means that none of the 32 memory-1 strategies obtains against the resident a payoff equal to or
-higher than the resident itself.}\label{tab:inv}
+higher than the resident itself. ``None'' means that no named strategy invades, but some of the 32
+strategies tie with the resident (e.g.\ ALLC obtains 3 against TFT, like TFT itself), so they can spread by
+neutral drift.}\label{tab:inv}
 \begin{tabular}{llll}
 \toprule
 Resident & $\pn=0$ & $\pn=0.01$ & $\pn=0.05$ \\
