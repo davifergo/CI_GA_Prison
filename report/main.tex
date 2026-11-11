@@ -1,0 +1,344 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\captionsetup{font=small,labelfont=bf}
+\graphicspath{{figures/}}
+\newcommand{\pn}{p_{\text{noise}}}
+\newcommand{\Atwelve}{\hat{A}_{12}}
+
+\title{\textbf{El dilema del prisionero iterado:\\ ¿cuándo emerge la cooperación?}\\[4pt]
+\large Computational Intelligence (MAI) --- Práctica de computación evolutiva, ejercicio 8}
+\author{[Nombre Apellido 1] \and [Nombre Apellido 2]}
+\date{12 de noviembre de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Estudiamos si la cooperación emerge y se mantiene en una población de estrategias de memoria~1
+para el dilema del prisionero iterado que evoluciona con un algoritmo genético, y cómo depende la respuesta
+del nivel de ruido en las acciones, $\pn \in \{0, 0.01, 0.05\}$. Con 30 ejecuciones independientes por nivel,
+el pago medio final cae de $2.98$ (cooperación casi total, dominada por TFT) a $2.01$ con $\pn=0.01$ y a
+$1.17$ con $\pn=0.05$ ($\Atwelve=1$ en las tres comparaciones). La hipótesis de partida se confirma sin ruido y
+con ruido alto, pero se refuta con ruido moderado: no gana la estrategia indulgente PAVLOV, sino GRIM. Lo
+explicamos con la matriz de pagos esperados de las estrategias clásicas: con ruido, PAVLOV es invadible por
+ALLD y por GRIM, mientras que GRIM y ALLD no son invadibles por ninguna estrategia de memoria~1, lo que
+además produce un resultado biestable con $\pn=0.05$.
+\end{abstract}
+
+%=====================================================================
+\section{Pregunta e hipótesis}
+%=====================================================================
+En el dilema del prisionero dos jugadores eligen simultáneamente cooperar (C) o traicionar (D), con pagos
+$T=5$ (traicionar a quien coopera), $R=3$ (cooperación mutua), $P=1$ (traición mutua) y $S=0$ (cooperar con
+quien traiciona). Como $T>R>P>S$, en una sola ronda traicionar domina; como $2R>T+S$, cooperar
+de forma sostenida es mejor que alternar explotaciones. En la versión iterada los mismos jugadores juegan
+$N_r=150$ rondas y pueden condicionar su acción al pasado, lo que abre la puerta a la reciprocidad
+\cite{axelrod1987}. Con \emph{ruido}, cada acción intencionada se invierte con probabilidad $\pn$; se sabe que
+TIT-FOR-TAT (TFT) queda entonces atrapada en represalias mutuas, mientras que \emph{win--stay, lose--shift}
+(PAVLOV) las corrige \cite{nowak1993,wu1995}.
+
+\paragraph{Pregunta.} ¿Emerge la cooperación y se mantiene estable en una población que evoluciona, y cómo
+depende la respuesta del nivel de ruido?
+
+\paragraph{Hipótesis (formulada antes de los experimentos).} Adoptamos la hipótesis propuesta en el enunciado,
+desglosada en tres predicciones falsables:
+\begin{description}
+  \item[H1] Sin ruido la población evoluciona hacia estrategias tipo TFT y la cooperación es casi total.
+        \emph{Se refutaría} si el pago medio final fuese claramente menor que $R=3$ (p.\,ej.\ $<2.5$) o si
+        TFT no fuese la estrategia mayoritaria.
+  \item[H2] Con ruido moderado ($\pn=0.01$) dominan estrategias indulgentes tipo PAVLOV. \emph{Se refutaría}
+        si PAVLOV no fuese la estrategia cooperativa más frecuente al final de las ejecuciones.
+  \item[H3] Con ruido alto ($\pn=0.05$) la cooperación colapsa. \emph{Se refutaría} si el pago medio final
+        no se acercase a $P=1$ y no dominasen estrategias traidoras.
+\end{description}
+
+%=====================================================================
+\section{Diseño experimental}
+%=====================================================================
+\paragraph{Representación.} Una estrategia de memoria~1 es una tabla de consulta de 5 bits
+(0\,=\,C, 1\,=\,D): la primera acción y la respuesta a cada resultado de la ronda anterior, CC, CD, DC, DD
+(acción propia primero). Solo existen $2^5=32$ estrategias, de modo que se pueden nombrar y seguir sus
+frecuencias: ALLC \texttt{00000}, ALLD \texttt{11111}, TFT \texttt{00101}, PAVLOV \texttt{00110},
+GRIM \texttt{00111} y STFT \texttt{10101} (TFT que empieza traicionando). El resto se agrupa como OTHER.
+
+\paragraph{Fitness: pago esperado exacto.} Cada individuo juega contra todos los demás (\emph{round robin},
+sin jugar contra sí mismo) y su fitness es el pago medio por ronda, de modo que 3 corresponde a cooperación
+total y 1 a traición total. Como la fitness depende del resto de la población, se trata de coevolución y
+toda la población se reevalúa en cada generación. Con estrategias de memoria~1, el resultado de una ronda
+es una cadena de Markov de 4 estados (CC, CD, DC, DD) cuyas transiciones dependen de las dos tablas y de
+$\pn$; propagando la distribución durante 150 rondas obtenemos el pago \emph{esperado} exacto de cada pareja.
+Calculamos así, una sola vez por nivel de ruido, la matriz $32\times 32$ de pagos. Esto es preferible a
+simular una partida ruidosa por pareja: una sola partida tiene mucha varianza (p.\,ej.\ GRIM contra GRIM
+con $\pn=0.01$: media 1.66, desviación típica 0.55 entre partidas), y si se reutiliza para todas las copias de
+la misma pareja, un único golpe de suerte decide la fitness de toda una clase de estrategias. En una prueba
+preliminar con simulación, esta fuente de error llegó a cambiar la estrategia dominante con $\pn=0.05$.
+
+\paragraph{Algoritmo genético y parámetros fijos.} Usamos DEAP \cite{deap} con los valores sugeridos en el
+enunciado (Tabla~\ref{tab:params}), que corresponden a un GA estándar: el cruce uniforme es natural porque
+los 5 bits no tienen orden relevante, y $p_m=0.01$ por bit genera un mutante en aproximadamente el 5\,\% de
+los hijos por generación, suficiente para que la población esté continuamente expuesta a estrategias
+invasoras. El elitismo de 2 evita perder la mejor estrategia por azar.
+
+\begin{table}[h]
+\centering\small
+\caption{Parámetros del experimento. Solo se manipula $\pn$.}\label{tab:params}
+\begin{tabular}{ll@{\hspace{2.5em}}ll}
+\toprule
+Población & 100 & Selección & torneo de tamaño 3 \\
+Generaciones & 500 & Cruce & uniforme, $p_c=0.7$ \\
+Rondas por partida $N_r$ & 150 & Mutación & bit-flip, $p_m=0.01$ por bit \\
+Pagos $(T,R,P,S)$ & $(5,3,1,0)$ & Elitismo & 2 individuos \\
+Factor & $\pn\in\{0,\,0.01,\,0.05\}$ & Ejecuciones & 30 por nivel (semillas independientes) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Factor, control y variable respuesta.} El único factor es $\pn$. El nivel $\pn=0$ es el
+\emph{control}: su resultado es predecible por la teoría clásica \cite{axelrod1987} (las estrategias
+recíprocas cooperan entre sí y no son explotables). La variable respuesta de cada ejecución es el pago medio de
+la población promediado en las últimas 100 generaciones; promediar en el tiempo evita que el resultado
+dependa de en qué punto de una oscilación termina la ejecución. Como medida del mecanismo registramos en cada
+generación la frecuencia de las 32 estrategias.
+
+\paragraph{Número de ejecuciones y estadística.} Un piloto de 10 ejecuciones por nivel dio desviaciones
+típicas de 0.002, 0.08 y 0.21 para $\pn=0$, 0.01 y 0.05, con un intervalo de confianza al 95\,\% de la mediana
+de $\pm0.17$ en el caso más variable. Aunque las diferencias entre niveles ya eran claras ($\Atwelve=1$), con
+$\pn=0.05$ la distribución resultó bimodal (Sección~\ref{sec:res}), así que fijamos 30 ejecuciones por nivel,
+lo que reduce ese intervalo a $\pm0.08$ y permite estimar las proporciones de cada resultado. Cada nivel
+$k$ usa las semillas $100k,\dots,100k+29$, de modo que las muestras son independientes. Para cada par de
+niveles reportamos la diferencia de medianas con un intervalo bootstrap percentil al 95\,\% (10\,000
+remuestreos) \cite{efron1993}, el estadístico $\Atwelve$ de Vargha--Delaney \cite{vargha2000,arcuri2011} y el
+test de Mann--Whitney bilateral con corrección de Holm por comparaciones múltiples \cite{holm1979}.
+
+%=====================================================================
+\section{Resultados}\label{sec:res}
+%=====================================================================
+La Figura~\ref{fig:payoff} muestra la evolución del pago medio. Sin ruido la población alcanza la
+cooperación total en unas 20 generaciones y la mantiene. Con $\pn=0.01$ el pago oscila alrededor de 1.7 con
+picos frecuentes de cooperación, y con $\pn=0.05$ cae rápidamente a cerca de 1.2. La Tabla~\ref{tab:stats} y
+la Figura~\ref{fig:final} resumen la variable respuesta: los tres niveles son completamente separables
+($\Atwelve=1$ en todas las comparaciones, es decir, cualquier ejecución con menos ruido supera a cualquier
+ejecución con más ruido), y las diferencias de medianas son grandes comparadas con sus intervalos.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{fig1_mean_payoff.pdf}
+\caption{Pago medio por ronda de la población a lo largo de las generaciones: mediana (línea) y rango
+intercuartílico (banda) de las 30 ejecuciones de cada nivel de ruido.}\label{fig:payoff}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Pago medio de las últimas 100 generaciones (30 ejecuciones por nivel). Arriba: mediana con IC
+bootstrap al 95\,\%. Abajo: comparaciones por pares; $p$ de Mann--Whitney corregido por Holm.}\label{tab:stats}
+\begin{tabular}{lccc}
+\toprule
+$\pn$ & Mediana [IC 95\,\%] & Rango intercuartílico & Mín.--máx. \\
+\midrule
+0 (control) & 2.978 [2.977, 2.979] & [2.977, 2.979] & 2.963--2.983 \\
+0.01        & 2.013 [1.976, 2.046] & [1.944, 2.055] & 1.766--2.193 \\
+0.05        & 1.171 [1.169, 1.325] & [1.169, 1.417] & 1.166--1.761 \\
+\midrule
+Comparación & Dif.\ de medianas [IC 95\,\%] & $\Atwelve$ & $p$ (Holm) \\
+\midrule
+0 vs 0.01    & $+0.966$ [$+0.932$, $+1.002$] & 1.00 & $9\cdot10^{-11}$ \\
+0 vs 0.05    & $+1.808$ [$+1.653$, $+1.809$] & 1.00 & $9\cdot10^{-11}$ \\
+0.01 vs 0.05 & $+0.842$ [$+0.679$, $+0.875$] & 1.00 & $9\cdot10^{-11}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{subfigure}[b]{0.42\textwidth}
+  \includegraphics[width=\textwidth]{fig3_final_payoff.pdf}
+  \caption{Variable respuesta de cada ejecución.}\label{fig:final}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.56\textwidth}
+  \includegraphics[width=\textwidth]{fig6_final_composition.pdf}
+  \caption{Composición de cada ejecución (últimas 100 gen.), ordenadas por pago.}\label{fig:comp}
+\end{subfigure}
+\caption{Resultado final de las 90 ejecuciones. Con $\pn=0.05$ el resultado es bimodal: 19 ejecuciones
+terminan dominadas por ALLD y 9 por GRIM.}\label{fig:finalboth}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig2_strategy_frequencies.pdf}
+\caption{Frecuencia de las estrategias con nombre a lo largo de las generaciones (media de las 30
+ejecuciones).}\label{fig:freq}
+\end{figure}
+
+\paragraph{Qué estrategias ganan.} Las Figuras~\ref{fig:comp} y \ref{fig:freq} muestran la composición
+de la población. Usamos como criterio de dominancia que una estrategia supere el 50\,\% de la población en
+las últimas 100 generaciones.
+\begin{itemize}
+  \item \textbf{$\pn=0$:} TFT domina en 29 de 30 ejecuciones (mediana 78\,\%). Casi todo el resto (OTHER,
+        17\,\%) es el genoma \texttt{00100}, que solo difiere de TFT en la respuesta a DD; entre
+        cooperadores esa entrada no se usa nunca, así que es una variante neutra que deriva libremente.
+        \textbf{H1 se confirma.}
+  \item \textbf{$\pn=0.01$:} GRIM domina en 19 de 30 ejecuciones (mediana 53\,\%), seguida de TFT
+        (13\,\%). PAVLOV no pasa de una mediana del 5\,\% y no domina en ninguna ejecución.
+        \textbf{H2 se refuta.}
+  \item \textbf{$\pn=0.05$:} ALLD domina en 19 ejecuciones (con un 95\,\% de la población) y GRIM en 9; en
+        las restantes conviven ambas. El pago cae a 1.17 en la mediana. \textbf{H3 se confirma}, aunque
+        con dos estados finales distintos.
+\end{itemize}
+
+%=====================================================================
+\section{Mecanismo}\label{sec:mec}
+%=====================================================================
+Para explicar estos resultados usamos la matriz de pagos esperados de las estrategias clásicas
+(Figura~\ref{fig:matrix}), calculada con el mismo modelo exacto que la fitness. En una población grande
+formada casi solo por una estrategia residente $X$, un mutante $Y$ puede invadirla si
+$\pi(Y,X)>\pi(X,X)$, o si $\pi(Y,X)=\pi(X,X)$ y $\pi(Y,Y)>\pi(X,Y)$, donde $\pi(A,B)$ es el pago de $A$
+contra $B$. La Tabla~\ref{tab:inv} aplica este criterio a cada nivel de ruido.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{fig4_payoff_matrices.pdf}
+\caption{Pago esperado por ronda de la estrategia de la fila contra la de la columna (150 rondas), para cada
+nivel de ruido.}\label{fig:matrix}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Análisis de invasión: estrategias con nombre que pueden invadir una población de la residente.
+``No invadible'' indica que ninguna de las 32 estrategias de memoria~1 obtiene contra la residente más
+pago que la propia residente.}\label{tab:inv}
+\begin{tabular}{llll}
+\toprule
+Residente & $\pn=0$ & $\pn=0.01$ & $\pn=0.05$ \\
+\midrule
+ALLC   & ALLD, STFT & todas & todas \\
+ALLD   & ---  & --- (no invadible) & --- (no invadible) \\
+TFT    & ---  & ALLC & ALLC \\
+PAVLOV & ALLD & ALLD, GRIM & ALLD, GRIM \\
+GRIM   & ---  & --- (no invadible) & --- (no invadible) \\
+STFT   & ALLC, TFT, PAVLOV, GRIM & ALLC, TFT, PAVLOV & ALLC, TFT, PAVLOV \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Sin ruido.} TFT, PAVLOV, GRIM y ALLC obtienen todas 3 entre sí, así que entre ellas la selección es
+neutra. Lo que las distingue es cómo se comportan frente a los mutantes que traicionan, que el operador de
+mutación genera constantemente. PAVLOV es invadible por ALLD: contra ALLD alterna C y D y solo obtiene 0.5,
+mientras que TFT y GRIM obtienen 0.99. Frente a STFT, TFT recupera la cooperación (2.5) y GRIM no (1.02).
+Por eso GRIM aparece en las primeras generaciones, cuando todavía hay muchos traidores (pico inicial de la
+Figura~\ref{fig:freq}), pero TFT la desplaza cuando la población ya coopera: TFT es la estrategia recíproca
+que mejor se comporta frente a toda la nube de mutantes.
+
+\paragraph{Con ruido moderado ($\pn=0.01$).} El ruido rompe el equilibrio de TFT: un error provoca una cadena
+de represalias alternas y el pago de TFT contra TFT cae a 2.52. ALLC, que nunca toma represalias, obtiene
+2.96 contra TFT y la invade, y una población rica en ALLC es explotada a continuación por GRIM (4.00 contra
+ALLC) y ALLD (4.94). PAVLOV, que es la mejor contra sí misma (2.95), es invadible por ALLD (2.99) y por GRIM
+(2.98): explota la indulgencia de PAVLOV, que vuelve a cooperar tras una traición mutua. Por el contrario,
+GRIM no es invadible por \emph{ninguna} de las 32 estrategias de memoria~1: en una población de GRIM, la
+mejor respuesta es la propia GRIM (1.658), y TFT queda casi empatada (1.655). Así, GRIM es el atractor
+habitual, y su casi neutralidad respecto a TFT abre la puerta a ciclos: GRIM deriva hacia TFT, ALLC invade a
+TFT y GRIM vuelve a explotar a ALLC. La Figura~\ref{fig:cycles} muestra estos ciclos en una ejecución
+concreta, y explican los picos de cooperación de la Figura~\ref{fig:payoff} y por qué el pago medio final
+(2.01) supera el de una población pura de GRIM (1.66).
+
+\paragraph{Con ruido alto ($\pn=0.05$).} Los errores son tan frecuentes (en una pareja, uno cada 10 rondas
+de media) que ninguna estrategia recíproca mantiene la cooperación: TFT contra TFT obtiene 2.30 y PAVLOV es
+explotada por ALLD (2.93 frente a 2.78). Solo quedan dos estados no invadibles, ALLD y GRIM, y ambos son
+estables entre sí: ALLD obtiene 1.18 contra GRIM, menos que GRIM contra GRIM (1.31), y GRIM obtiene 1.14
+contra ALLD, menos que ALLD contra ALLD (1.15). Esta \emph{biestabilidad} explica la bimodalidad de la
+Figura~\ref{fig:comp}: cada ejecución termina en el atractor al que llega primero, y como pasar de GRIM
+(\texttt{00111}) a ALLD (\texttt{11111}) requiere cambiar dos bits a la vez, una vez allí la población no
+sale fácilmente (la Figura~\ref{fig:cycles} muestra una transición de este tipo).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig5_example_runs.pdf}
+\caption{Dinámica de una sola ejecución por nivel de ruido (ejecución 0). Con $\pn=0.01$ se observan ciclos
+de GRIM, TFT, PAVLOV y ALLC; con $\pn=0.05$, una larga fase de ALLD seguida de una transición a GRIM.}
+\label{fig:cycles}
+\end{figure}
+
+\paragraph{¿Por qué no gana PAVLOV?} En el resultado clásico a favor de PAVLOV \cite{nowak1993}, obtenido con
+estrategias estocásticas, PAVLOV solo se impone después de que estrategias tipo TFT hayan eliminado a los
+traidores. Con estrategias
+deterministas de memoria~1, PAVLOV tiene una debilidad estructural: frente a un traidor incondicional coopera
+una ronda de cada dos. Con nuestro operador de mutación, ALLD y GRIM reaparecen continuamente y explotan esa
+debilidad antes de que PAVLOV pueda establecerse.
+
+%=====================================================================
+\section{Limitaciones}
+%=====================================================================
+\begin{itemize}
+  \item \textbf{Solo memoria 1 y estrategias deterministas.} Estrategias más complejas (memoria~2,
+        máquinas de estados) o estocásticas (\emph{generous TFT}) podrían sostener la cooperación con ruido.
+        No estudiamos la extensión del enunciado; nuestras conclusiones se refieren al espacio de 32
+        estrategias.
+  \item \textbf{Un único conjunto de parámetros del GA.} Población de 100, $p_m=0.01$ y torneo de 3 fijan la
+        intensidad de la deriva y de la selección. Con otra tasa de mutación, la frecuencia de invasores
+        cambiaría, y con ella la estabilidad de PAVLOV o la frecuencia de los ciclos.
+  \item \textbf{Sin autojuego.} Un individuo no juega contra sí mismo. Con población 100 el efecto es pequeño,
+        pero no nulo.
+  \item \textbf{El pago medio mezcla cooperación y ruido.} Con ruido alto, incluso ALLD contra ALLD obtiene
+        más de 1, porque los errores producen cooperaciones involuntarias. Por eso complementamos el pago con
+        la composición de la población.
+  \item \textbf{Robustez.} En una comprobación adicional (10 ejecuciones por configuración,
+        \texttt{report/robustness.py}) las conclusiones se mantienen con partidas de 1000 rondas
+        (TFT domina en 10/10 sin ruido, GRIM en 6/10 con $\pn=0.01$ y ALLD en 6/10 con $\pn=0.05$) y con más
+        ruido ($\pn=0.1$: ALLD en 8/10; $\pn=0.25$: ALLD en 10/10, con un pago de 1.70 que solo refleja el
+        ruido). Sin embargo, no hemos explorado de forma sistemática otros niveles intermedios entre 0 y 0.01,
+        donde debe estar la transición entre TFT y GRIM.
+\end{itemize}
+
+%=====================================================================
+\section{Conclusiones}
+%=====================================================================
+En una población de estrategias de memoria~1 que evoluciona con un GA, la cooperación emerge y es estable
+sin ruido, con TFT como estrategia dominante. Basta un 1\,\% de errores para perder un tercio del pago medio:
+la población queda dominada por GRIM y atraviesa ciclos de cooperación y explotación. Con un 5\,\% la
+cooperación colapsa hacia dos estados estables, ALLD y GRIM. La hipótesis se cumple en los extremos, pero la
+estrategia indulgente PAVLOV no gana con ruido moderado, porque es explotable por ALLD y GRIM, que no son
+invadibles por ninguna estrategia de memoria~1. El análisis de invasión sobre la matriz de pagos esperados
+predice estos resultados y explica tanto los ciclos como la bimodalidad observados.
+
+\paragraph{Reproducibilidad.} Todo el código, las semillas y las instrucciones están en el
+\texttt{README.txt}: \texttt{python main.py} ejecuta el experimento y \texttt{python analysis.py} genera
+todas las tablas y figuras.
+
+\paragraph{Uso de herramientas de IA generativa.} Hemos utilizado Claude (Anthropic, modelo Claude Opus 5.5,
+noviembre de 2026) como asistente para revisar el código inicial (detectó el problema de reutilizar una única
+partida ruidosa por pareja), proponer y escribir el cálculo exacto del pago esperado, el script de análisis
+estadístico y de figuras, y un primer borrador de este informe. Todos los resultados se han obtenido
+ejecutando nuestro código, y hemos revisado, verificado y editado el texto final.
+
+\small
+\begin{thebibliography}{9}
+\bibitem{arcuri2011} A.~Arcuri, L.~Briand. A practical guide for using statistical tests to assess randomized
+  algorithms in software engineering. \emph{Proc.\ ICSE}, 1--10, 2011.
+\bibitem{axelrod1987} R.~Axelrod. The evolution of strategies in the iterated prisoner's dilemma. In
+  L.~Davis (ed.), \emph{Genetic Algorithms and Simulated Annealing}, Pitman, 1987.
+\bibitem{efron1993} B.~Efron, R.~J.~Tibshirani. \emph{An Introduction to the Bootstrap}. Chapman \& Hall, 1993.
+\bibitem{deap} F.-A.~Fortin, F.-M.~De~Rainville, M.-A.~Gardner, M.~Parizeau, C.~Gagné. DEAP: evolutionary
+  algorithms made easy. \emph{Journal of Machine Learning Research} 13:2171--2175, 2012.
+\bibitem{holm1979} S.~Holm. A simple sequentially rejective multiple test procedure. \emph{Scandinavian
+  Journal of Statistics} 6(2):65--70, 1979.
+\bibitem{nowak1993} M.~Nowak, K.~Sigmund. A strategy of win-stay, lose-shift that outperforms tit-for-tat in
+  the Prisoner's Dilemma game. \emph{Nature} 364:56--58, 1993.
+\bibitem{vargha2000} A.~Vargha, H.~D.~Delaney. A critique and improvement of the CL common language effect
+  size statistics of McGraw and Wong. \emph{Journal of Educational and Behavioral Statistics} 25(2):101--132, 2000.
+\bibitem{wu1995} J.~Wu, R.~Axelrod. How to cope with noise in the iterated prisoner's dilemma. \emph{Journal
+  of Conflict Resolution} 39(1):183--189, 1995.
+\end{thebibliography}
+
+\end{document}

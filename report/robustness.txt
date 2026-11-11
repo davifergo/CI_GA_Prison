@@ -1,0 +1,5 @@
+p_noise=0.0   rounds=1000  median payoff 2.978 [2.976, 2.980]  dominant: TFT 10/10
+p_noise=0.01  rounds=1000  median payoff 1.711 [1.542, 1.828]  dominant: GRIM 6/10
+p_noise=0.05  rounds=1000  median payoff 1.171 [1.168, 1.565]  dominant: ALLD 6/10, GRIM 2/10
+p_noise=0.1   rounds=150   median payoff 1.310 [1.308, 1.393]  dominant: ALLD 8/10, OTHER 2/10
+p_noise=0.25  rounds=150   median payoff 1.699 [1.698, 1.700]  dominant: ALLD 10/10
