@@ -1,0 +1,24 @@
+MEMORY 2: FINAL MEAN PAYOFF (mean of the last 100 generations, 30 runs)
+  p_noise=0.0   median 2.913  95% CI [2.900, 2.923]  IQR [2.857, 2.930]  min 2.541  max 2.967
+  p_noise=0.01  median 2.842  95% CI [2.826, 2.844]  IQR [2.824, 2.844]  min 2.816  max 2.848
+  p_noise=0.05  median 2.553  95% CI [2.551, 2.556]  IQR [2.550, 2.560]  min 2.485  max 2.572
+
+MEMORY 2 vs MEMORY 1 (final mean payoff; A12 = P(memory 2 > memory 1), Mann-Whitney)
+  p_noise=0.0   median m2 2.913  m1 2.978  diff -0.065  A12 0.00  p 3.69e-11
+  p_noise=0.01  median m2 2.842  m1 2.013  diff +0.829  A12 1.00  p 3.02e-11
+  p_noise=0.05  median m2 2.553  m1 1.171  diff +1.382  A12 1.00  p 3.02e-11
+
+MOST FREQUENT GENOME AT THE LAST GENERATION (how many runs end with each one)
+  format: first two moves | 4 groups (previous outcome CC, CD, DC, DD), each with the reply after current CC, CD, DC, DD; 0 = C, 1 = D
+  p_noise=0.0 (29 different genomes over 30 runs; median share of the top genome in its population 11%):
+    11 | 0101 0101 0111 0000   in 2 runs
+    10 | 0101 0101 0100 0001   in 1 runs
+    10 | 0100 1101 1101 0011   in 1 runs
+  p_noise=0.01 (6 different genomes over 30 runs; median share of the top genome in its population 82%):
+    10 | 0110 1111 1111 0110   in 7 runs
+    10 | 0111 1111 1111 0110   in 6 runs
+    10 | 0111 0111 0111 0110   in 5 runs
+  p_noise=0.05 (7 different genomes over 30 runs; median share of the top genome in its population 83%):
+    11 | 0111 1111 1111 0110   in 10 runs
+    11 | 0111 0111 0111 0000   in 6 runs
+    11 | 0111 0111 0111 0110   in 5 runs
