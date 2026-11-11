@@ -255,9 +255,9 @@ def main():
     fig = plt.figure(figsize=(FULL, 0.28))
     handles = [plt.Line2D([], [], color=STRAT_COLORS[c], lw=2, ls=":" if c == "OTHER" else "-")
                for c in COLUMNS]
-    fig.legend(handles, [c if c != "OTHER" else "OTRAS" for c in COLUMNS], loc="center",
+    fig.legend(handles, list(COLUMNS), loc="center",
                ncol=len(COLUMNS), handlelength=1.8, columnspacing=1.6)
-    save(fig, "leyenda_estrategias")
+    save(fig, "strategy_legend")
 
     # 1. mean payoff over generations: median and IQR across runs
     fig, ax = plt.subplots(figsize=(FULL, 2.5), layout="constrained")
@@ -268,11 +268,11 @@ def main():
         ax.plot(gens, med, color=NOISE_COLORS[p], lw=1.3)
         ax.annotate(lab_noise[p], (gens[-1], med[-1]), xytext=(4, 0), textcoords="offset points",
                     va="center", color=INK2)
-    for yv, txt in ((3, "cooperación total ($R=3$)"), (1, "traición total ($P=1$)")):
+    for yv, txt in ((3, "full cooperation ($R=3$)"), (1, "full defection ($P=1$)")):
         ax.axhline(yv, color=MUTED, lw=0.7, ls="--")
         ax.text(6, yv + 0.03, txt, fontsize=7, color=MUTED, va="bottom")
-    ax.set(xlabel="generación", ylabel="pago medio por ronda", xlim=(0, N_GEN), ylim=(0.8, 3.2))
-    save(fig, "fig_pago_medio")
+    ax.set(xlabel="generation", ylabel="mean payoff per round", xlim=(0, N_GEN), ylim=(0.8, 3.2))
+    save(fig, "fig_mean_payoff")
 
     # 2. final mean payoff per run: boxplot + points
     fig, ax = plt.subplots(figsize=(3.1, 2.4), layout="constrained")
@@ -285,8 +285,8 @@ def main():
         ax.scatter(i + jit.uniform(-0.13, 0.13, n_runs), final[p], s=9, color=NOISE_COLORS[p],
                    edgecolor="white", linewidth=0.4, zorder=3)
     ax.set_xticks(range(1, len(NOISE_LEVELS) + 1), [str(p) for p in NOISE_LEVELS])
-    ax.set(xlabel=r"$p_{\mathrm{noise}}$", ylabel=f"pago medio (últimas {LAST} gen.)")
-    save(fig, "fig_pago_final")
+    ax.set(xlabel=r"$p_{\mathrm{noise}}$", ylabel=f"mean payoff (last {LAST} gen.)")
+    save(fig, "fig_final_payoff")
 
     for p in NOISE_LEVELS:
         # 3. strategy frequencies over generations (mean across runs)
@@ -294,8 +294,8 @@ def main():
         for c in COLUMNS:
             ax.plot(gens, hist[p][c].mean(0), color=STRAT_COLORS[c], lw=1.0,
                     ls=":" if c == "OTHER" else "-")
-        ax.set(xlabel="generación", ylabel="frecuencia media", xlim=(0, N_GEN), ylim=(0, 1))
-        save(fig, f"fig_frecuencias_{tag[p]}")
+        ax.set(xlabel="generation", ylabel="mean frequency", xlim=(0, N_GEN), ylim=(0, 1))
+        save(fig, f"fig_frequencies_{tag[p]}")
 
         # 4. final composition of each run, sorted by final payoff
         fig, ax = plt.subplots(figsize=(THIRD, 1.75), layout="constrained")
@@ -305,18 +305,18 @@ def main():
             v = final_freq[p][c][order]
             ax.bar(range(n_runs), v, bottom=bottom, width=0.85, color=STRAT_COLORS[c], linewidth=0)
             bottom += v
-        ax.set(xlabel="ejecución (orden por pago)", ylabel="frecuencia", ylim=(0, 1), xlim=(-0.7, n_runs - 0.3),
+        ax.set(xlabel="run (sorted by payoff)", ylabel="frequency", ylim=(0, 1), xlim=(-0.7, n_runs - 0.3),
                xticks=[])
         ax.grid(False)
-        save(fig, f"fig_composicion_{tag[p]}")
+        save(fig, f"fig_composition_{tag[p]}")
 
         # 5. one example run (shows the cycles that the averages hide)
         fig, ax = plt.subplots(figsize=(THIRD, 1.75), layout="constrained")
         for c in COLUMNS:
             ax.plot(gens, hist[p][c][0], color=STRAT_COLORS[c], lw=0.8,
                     ls=":" if c == "OTHER" else "-")
-        ax.set(xlabel="generación", ylabel="frecuencia", xlim=(0, N_GEN), ylim=(0, 1))
-        save(fig, f"fig_ejecucion_{tag[p]}")
+        ax.set(xlabel="generation", ylabel="frequency", xlim=(0, N_GEN), ylim=(0, 1))
+        save(fig, f"fig_run_{tag[p]}")
 
         # 6. payoff matrix of the named strategies
         fig, ax = plt.subplots(figsize=(THIRD, 2.05), layout="constrained")
@@ -330,9 +330,9 @@ def main():
         ax.set_xticks(range(len(names)), short, rotation=90)
         ax.set_yticks(range(len(names)), short)
         ax.tick_params(labelsize=6.5, length=0)
-        ax.set_xlabel("columna (oponente)", fontsize=7)
+        ax.set_xlabel("column (opponent)", fontsize=7)
         ax.grid(False)
-        save(fig, f"fig_matriz_{tag[p]}")
+        save(fig, f"fig_matrix_{tag[p]}")
 
 
 if __name__ == "__main__":
