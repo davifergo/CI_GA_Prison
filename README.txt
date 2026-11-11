@@ -25,7 +25,7 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
 --------
    main.py               memory 1: GA (DEAP) and exact payoff computation.
    analysis.py           memory 1: pilot, effect sizes, tests, payoff matrices, invasion
-                         analysis, figures.
+                         analysis, regimes, one-bit mutants, figures.
    main_memory2.py       memory 2: GA and exact payoff computation (computed on demand,
                          with a cache).
    analysis_memory2.py   memory 2: final payoff, comparison with memory 1, diversity,
@@ -41,7 +41,11 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
    memory1/results/final_per_run.csv           response variable of every run.
    memory1/results/stats_pairwise.csv          pairwise comparisons between noise levels.
    memory1/results/summary.txt                 all the memory-1 tables used in the report.
-   memory1/figures/fig*.pdf / .png             memory-1 figures.
+   report/figures/fig_*.pdf                    memory-1 figures of the report (one PDF per
+                                               plot), written by analysis.py.
+   report/robustness.py                        extra check cited in the report (1000 rounds,
+                                               p_noise 0.1 and 0.25); writes
+                                               report/robustness.txt. Run: python report/robustness.py
 
    memory2/results/history_noise_<p>.csv       one row per (run, generation): mean payoff,
                                                frequency of the memory-1 strategies embedded
