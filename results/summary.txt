@@ -1,0 +1,75 @@
+PILOT (first 10 runs; response = mean payoff of the last 100 generations)
+ p_noise   median      sd     IQR  95% CI half-width, n=10    n=30
+     0.0    2.979   0.002   0.002                    0.001   0.001
+    0.01    2.005   0.082   0.099                    0.071   0.035
+    0.05    1.294   0.212   0.321                    0.173   0.078
+Pilot A12: 0.0 vs 0.01: 1.00, 0.0 vs 0.05: 1.00, 0.01 vs 0.05: 1.00
+
+FINAL MEAN PAYOFF (30 runs per noise level)
+  p_noise=0.0   median 2.978  95% CI [2.977, 2.979]  IQR [2.977, 2.979]  min 2.963  max 2.983
+  p_noise=0.01  median 2.013  95% CI [1.976, 2.046]  IQR [1.944, 2.055]  min 1.766  max 2.193
+  p_noise=0.05  median 1.171  95% CI [1.169, 1.325]  IQR [1.169, 1.417]  min 1.166  max 1.761
+
+PAIRWISE COMPARISONS of the final mean payoff (A vs B; Mann-Whitney, Holm-corrected)
+  0.0 vs 0.01: median diff +0.966 [+0.932, +1.002]  A12 1.00  p 3.02e-11  p_holm 9.06e-11
+  0.0 vs 0.05: median diff +1.808 [+1.653, +1.809]  A12 1.00  p 3.02e-11  p_holm 9.06e-11
+  0.01 vs 0.05: median diff +0.842 [+0.679, +0.875]  A12 1.00  p 3.02e-11  p_holm 9.06e-11
+
+STRATEGY FREQUENCY over the last 100 generations: median [IQR] across runs; 'dominant' = runs where it is > 50%
+  p_noise=0.0: ALLC 0.01 [0.00,0.01] dom 0 | ALLD 0.00 [0.00,0.00] dom 0 | TFT 0.78 [0.73,0.83] dom 29 | PAVLOV 0.00 [0.00,0.01] dom 0 | GRIM 0.01 [0.01,0.02] dom 0 | STFT 0.01 [0.01,0.01] dom 0 | OTHER 0.17 [0.14,0.23] dom 0
+  p_noise=0.01: ALLC 0.03 [0.02,0.04] dom 0 | ALLD 0.00 [0.00,0.01] dom 0 | TFT 0.13 [0.11,0.15] dom 0 | PAVLOV 0.05 [0.04,0.07] dom 0 | GRIM 0.53 [0.46,0.61] dom 19 | STFT 0.00 [0.00,0.00] dom 0 | OTHER 0.24 [0.18,0.27] dom 0
+  p_noise=0.05: ALLC 0.00 [0.00,0.00] dom 0 | ALLD 0.95 [0.01,0.95] dom 19 | TFT 0.00 [0.00,0.04] dom 0 | PAVLOV 0.00 [0.00,0.02] dom 0 | GRIM 0.00 [0.00,0.62] dom 9 | STFT 0.00 [0.00,0.00] dom 0 | OTHER 0.05 [0.05,0.09] dom 0
+
+  top genomes p_noise=0.0: 00101(TFT) 0.75, 00100 0.15, 00111(GRIM) 0.03, 00001 0.03, 01101 0.01
+  top genomes p_noise=0.01: 00111(GRIM) 0.53, 00101(TFT) 0.13, 00100 0.06, 00110(PAVLOV) 0.06, 00001 0.05
+  top genomes p_noise=0.05: 11111(ALLD) 0.62, 00111(GRIM) 0.27, 00101(TFT) 0.02, 10111 0.01, 00100 0.01
+  genome bits = first move, then reply after CC, CD, DC, DD (0 = C, 1 = D)
+
+PAYOFF MATRIX p_noise=0.0 (expected payoff per round of row vs column)
+              ALLC    ALLD     TFT  PAVLOV    GRIM    STFT
+      ALLC   3.000   0.000   3.000   3.000   3.000   2.980
+      ALLD   5.000   1.000   1.027   3.000   1.027   1.000
+       TFT   3.000   0.993   3.000   3.000   3.000   2.500
+    PAVLOV   3.000   0.500   3.000   3.000   3.000   2.000
+      GRIM   3.000   0.993   3.000   3.000   3.000   1.020
+      STFT   3.013   1.000   2.500   2.000   1.020   1.000
+  Invasion (mutant Y can invade resident X if pi(Y,X) > pi(X,X), or = and pi(Y,Y) > pi(X,Y)):
+    resident    ALLC: invaded by ALLD, STFT   (best reply among all 32: 10010 with 5.000 vs 3.000)
+    resident    ALLD: invaded by -   (best reply among all 32: 10001 with 1.000 vs 1.000)
+    resident     TFT: invaded by -   (best reply among all 32: 00000 with 3.000 vs 3.000)
+    resident  PAVLOV: invaded by ALLD   (best reply among all 32: 01011 with 3.013 vs 3.000)
+    resident    GRIM: invaded by -   (best reply among all 32: 00000 with 3.000 vs 3.000)
+    resident    STFT: invaded by ALLC, TFT, PAVLOV, GRIM   (best reply among all 32: 00000 with 2.980 vs 1.000)
+
+PAYOFF MATRIX p_noise=0.01 (expected payoff per round of row vs column)
+              ALLC    ALLD     TFT  PAVLOV    GRIM    STFT
+      ALLC   2.990   0.040   2.961   1.763   1.456   2.941
+      ALLD   4.940   1.030   1.095   2.992   1.057   1.069
+       TFT   3.009   1.013   2.521   2.429   1.655   2.282
+    PAVLOV   3.801   0.533   2.433   2.951   1.542   2.187
+      GRIM   4.004   1.023   1.703   2.976   1.658   1.111
+      STFT   3.022   1.020   2.298   2.200   1.065   1.899
+  Invasion (mutant Y can invade resident X if pi(Y,X) > pi(X,X), or = and pi(Y,Y) > pi(X,Y)):
+    resident    ALLC: invaded by ALLD, TFT, PAVLOV, GRIM, STFT   (best reply among all 32: 11111 with 4.940 vs 2.990)
+    resident    ALLD: invaded by -   (best reply among all 32: 11111 with 1.030 vs 1.030)
+    resident     TFT: invaded by ALLC   (best reply among all 32: 00000 with 2.961 vs 2.521)
+    resident  PAVLOV: invaded by ALLD, GRIM   (best reply among all 32: 11111 with 2.992 vs 2.951)
+    resident    GRIM: invaded by -   (best reply among all 32: 00111 with 1.658 vs 1.658)
+    resident    STFT: invaded by ALLC, TFT, PAVLOV   (best reply among all 32: 00000 with 2.941 vs 1.899)
+
+PAYOFF MATRIX p_noise=0.05 (expected payoff per round of row vs column)
+              ALLC    ALLD     TFT  PAVLOV    GRIM    STFT
+      ALLC   2.947   0.203   2.811   1.623   1.187   2.793
+      ALLD   4.702   1.147   1.348   2.932   1.182   1.324
+       TFT   3.035   1.094   2.303   2.282   1.301   2.249
+    PAVLOV   3.794   0.673   2.286   2.778   1.239   2.236
+      GRIM   4.073   1.138   1.504   2.890   1.310   1.407
+      STFT   3.046   1.101   2.265   2.249   1.209   2.183
+  Invasion (mutant Y can invade resident X if pi(Y,X) > pi(X,X), or = and pi(Y,Y) > pi(X,Y)):
+    resident    ALLC: invaded by ALLD, TFT, PAVLOV, GRIM, STFT   (best reply among all 32: 11111 with 4.702 vs 2.947)
+    resident    ALLD: invaded by -   (best reply among all 32: 11111 with 1.147 vs 1.147)
+    resident     TFT: invaded by ALLC   (best reply among all 32: 00000 with 2.811 vs 2.303)
+    resident  PAVLOV: invaded by ALLD, GRIM   (best reply among all 32: 11111 with 2.932 vs 2.778)
+    resident    GRIM: invaded by -   (best reply among all 32: 00111 with 1.310 vs 1.310)
+    resident    STFT: invaded by ALLC, TFT, PAVLOV   (best reply among all 32: 00000 with 2.793 vs 2.183)
+
