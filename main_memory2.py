@@ -11,7 +11,7 @@ precomputed as in main.py: the expected payoff of a pair is computed only when t
 appears in the population, and it is cached for the rest of the run.
 
 Runs N_RUNS independent GA runs for every noise level and writes, per noise level:
-  results/memory2_history_noise_<p>.csv   one row per (run, generation)
+  memory2/results/history_noise_<p>.csv   one row per (run, generation)
 """
 import csv
 import os
@@ -36,7 +36,7 @@ N_RUNS = 30
 SEED_OFFSET = 100
 MAX_CACHE = 2_000_000  # cached pairs per run before the cache is emptied (memory limit)
 
-RESULTS_DIR = "results"
+RESULTS_DIR = os.path.join("memory2", "results")
 
 # ---------------------------------------------------------------- game
 # Actions: 0 = C, 1 = D.  An outcome is o = 2*a1 + a2, so o = 0, 1, 2, 3 = CC, CD, DC, DD
@@ -78,8 +78,10 @@ COLUMNS = list(MEMORY1) + ["TF2T", "OTHER"]
 SHIFTS = np.arange(N_BITS - 1, -1, -1)
 
 # DEAP classes: an individual is a list of bits with a fitness that we maximise
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+# (main.py defines the same classes; the check avoids a warning when both are imported)
+if not hasattr(creator, "Individual"):
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+    creator.create("Individual", list, fitness=creator.FitnessMax)
 
 
 def genome_index(genome):
@@ -256,7 +258,7 @@ if __name__ == "__main__":
         for run in range(N_RUNS):
             seed = SEED_OFFSET * k + run
             rows += [{"run": run, **r} for r in run_ga(seed, p_noise)]
-        save_csv(rows, os.path.join(RESULTS_DIR, f"memory2_history_noise_{p_noise}.csv"))
+        save_csv(rows, os.path.join(RESULTS_DIR, f"history_noise_{p_noise}.csv"))
         # summary of the last generation over all runs
         finals = [r for r in rows if r["gen"] == N_GEN]
         print(f"p_noise={p_noise}: median final mean payoff "

@@ -1,10 +1,10 @@
 """Statistics and figures for the report. Run after main.py.
 
 Writes:
-  results/summary.txt               all tables (pilot, final payoff, tests, strategies, invasion)
-  results/final_per_run.csv         the response variable of every run
-  results/stats_pairwise.csv        median difference + bootstrap CI, A12, Mann-Whitney (Holm)
-  figures/*.pdf and *.png           figures for the report
+  memory1/results/summary.txt               all tables (pilot, final payoff, tests, strategies, invasion)
+  memory1/results/final_per_run.csv         the response variable of every run
+  memory1/results/stats_pairwise.csv        median difference + bootstrap CI, A12, Mann-Whitney (Holm)
+  memory1/figures/*.pdf and *.png           figures for the report
 """
 import csv
 import itertools
@@ -18,7 +18,7 @@ from scipy.stats import mannwhitneyu
 
 from main import NOISE_LEVELS, N_GEN, RESULTS_DIR, COLUMNS, NAMED, GENOME_LABELS, genome_index
 
-FIG_DIR = "figures"
+FIG_DIR = os.path.join("memory1", "figures")
 LAST = 100            # response variable: average over the last LAST generations
 N_PILOT = 10
 N_BOOT = 10_000

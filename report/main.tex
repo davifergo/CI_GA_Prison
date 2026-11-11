@@ -50,6 +50,11 @@ We explain this with the matrix of expected payoffs: with noise, PAVLOV can be i
 whereas GRIM and ALLD cannot be invaded by any memory-1 strategy. In a finite population with mutation,
 however, almost neutral paths connect them, and these produce cycles of cooperation and exploitation with
 $\pn=0.01$ and alternations between ALLD and GRIM with $\pn=0.05$.
+% [ES] Añadido (memoria 2): revisar y traducir.
+Como extensión, repetimos el experimento con estrategias de memoria 2 (18 bits). Con ellas la cooperación
+resiste el ruido: el pago final mediano es 2.84 con $\pn=0.01$ y 2.55 con $\pn=0.05$ ($\Atwelve=1$ frente a
+memoria 1), porque dominan estrategias de tipo PAVLOV que castigan una ronda más y que ningún mutante de
+memoria 2 puede invadir.
 \end{abstract}
 
 %=====================================================================
@@ -94,6 +99,9 @@ cooperation and 1 to full defection. Since fitness depends on the rest of the po
 coevolution, and the whole population is re-evaluated in every generation. With memory-1 strategies, the
 outcome of a round is a 4-state Markov chain (CC, CD, DC, DD) whose transitions depend on both tables and
 on $\pn$; propagating the distribution for 150 rounds gives the exact \emph{expected} payoff of each pair.
+% [ES] Añadido: revisar y traducir.
+Es decir, el pago equivale a la media de infinitas partidas independientes de 150 rondas, y no al resultado
+de una única partida con ruido.
 We thus compute, once per noise level, the $32\times 32$ payoff matrix. This is preferable to simulating
 one noisy match per pair: a single match has a large variance (e.g.\ GRIM against GRIM with $\pn=0.01$:
 mean 1.66, standard deviation 0.55 across matches), and if it is reused for every copy of the same pair, a
@@ -310,13 +318,102 @@ it cooperates every other round. With our mutation operator, ALLD and GRIM reapp
 exploit that weakness before PAVLOV can establish itself.
 
 %=====================================================================
+% [ES] Sección nueva (memoria 2): revisar y traducir.
+\section{Extensión: estrategias de memoria 2}\label{sec:m2}
+%=====================================================================
+El enunciado propone comprobar si estrategias más complejas cambian la conclusión. Repetimos el experimento
+con estrategias de memoria 2, que deciden en función de los dos últimos resultados, y mantenemos todo lo
+demás igual: los parámetros de la Tabla~\ref{tab:params}, 30 ejecuciones por nivel de ruido, las mismas
+semillas y la misma variable respuesta.
+
+\paragraph{Representación y cálculo del pago.} Una estrategia de memoria 2 tiene 18 bits: las acciones de
+las rondas 1 y 2 (incondicionales, como propone el enunciado) y la respuesta a cada uno de los 16 pares
+(resultado anterior, resultado actual). Hay $2^{18}=262\,144$ estrategias, por lo que ya no es posible poner
+nombre a todas ni precalcular la matriz de pagos completa (ocuparía unos 550\,GB). El pago esperado se
+calcula con el mismo método exacto, pero el estado de la cadena de Markov es ahora el par de los dos últimos
+resultados (16 estados), y solo para las parejas de genomas que aparecen en la población, que se guardan en
+una caché durante la ejecución. Hemos comprobado el cálculo con la media de 20\,000 partidas simuladas
+(diferencias menores que 0.002). Escribimos un genoma como \g{ab\,|\,CC\,CD\,DC\,DD}: las dos primeras
+jugadas y, para cada resultado anterior (CC, CD, DC, DD), un grupo de 4 bits con la respuesta según el
+resultado actual.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_m2_summary}
+\caption{Memoria 2. (a) Pago medio de la población por generación: mediana y rango intercuartílico de las
+30 ejecuciones. (b) Variable respuesta de cada ejecución con memoria 1 (gris) y memoria 2 (azul).
+(c) Proporción de la población que tiene el genoma más frecuente (mediana de las ejecuciones).}
+\label{fig:m2}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Pago medio de las últimas 100 generaciones con memoria 1 y memoria 2 (mediana de 30 ejecuciones,
+con IC del 95\,\% por bootstrap para memoria 2). $\Atwelve$ es la probabilidad de que una ejecución de
+memoria 2 supere a una de memoria 1; en los tres casos, Mann--Whitney $p<4\cdot10^{-11}$.}\label{tab:m2}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+$\pn$ & Memoria 1 & Memoria 2 [IC 95\,\%] & Diferencia & $\Atwelve$ \\
+\midrule
+0    & 2.978 & 2.913 [2.900, 2.923] & $-0.065$ & 0.00 \\
+0.01 & 2.013 & 2.842 [2.826, 2.844] & $+0.829$ & 1.00 \\
+0.05 & 1.171 & 2.553 [2.551, 2.556] & $+1.382$ & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Resultados.} Con ruido, la memoria 2 mantiene la cooperación (Tabla~\ref{tab:m2} y
+Figura~\ref{fig:m2}): con $\pn=0.05$ el pago mediano es 2.55, frente a 1.17 con memoria 1, y cualquier
+ejecución de memoria 2 supera a cualquiera de memoria 1 ($\Atwelve=1$). Sin ruido ocurre lo contrario,
+aunque la diferencia es pequeña: la memoria 2 queda algo por debajo (2.91 frente a 2.98) y es más variable,
+con 4 de las 30 ejecuciones entre 2.54 y 2.62. La población también se comporta de forma distinta según el
+ruido (Figura~\ref{fig:m2}c): con ruido converge en unas 40 generaciones a un genoma que ocupa el 83\,\% de
+la población (mediana de unos 13 genomas distintos), mientras que sin ruido el más frecuente solo tiene el
+15\,\% y conviven unos 43 genomas. Como cada genoma concreto es muy raro, las estrategias con nombre de la
+Sección~\ref{sec:res} prácticamente no aparecen, por lo que analizamos directamente los genomas dominantes.
+
+\paragraph{Mecanismo.} \emph{Sin ruido}, entre cooperadores casi nunca se dan las situaciones posteriores a
+una traición, así que la mayoría de los 16 bits de respuesta no están sometidos a selección y cambian por
+deriva. Contra el genoma final más frecuente, 21\,568 genomas obtienen un pago igual o mayor que el que
+obtiene él contra sí mismo, y alguno lo supera (3.00 frente a 2.97). La población no converge y, a veces, la
+deriva acumula estrategias explotables, lo que explica las ejecuciones con pago bajo. Con memoria 1 hay solo
+5 bits y este efecto es mucho menor.
+
+\emph{Con ruido}, los errores hacen que aparezcan todas las situaciones y todos los bits pasan a estar
+sometidos a selección. Con $\pn=0.01$ el genoma final más frecuente es \g{10\,|\,0110\,1111\,1111\,0110}
+(7 ejecuciones; los otros genomas frecuentes se diferencian de él en pocos bits). Si el resultado anterior
+fue un acuerdo (CC o DD), responde como PAVLOV (\g{0110}: coopera tras CC y DD y traiciona tras CD y DC); si
+fue un desacuerdo (CD o DC), traiciona siempre. Esto tiene dos consecuencias:
+\begin{itemize}
+  \item Entre copias de sí mismo, después de un error hay dos rondas de DD y se vuelve a cooperar (PAVLOV
+        necesita solo una). Por eso obtiene 2.90 contra sí mismo, cerca de PAVLOV (2.95) y muy por encima
+        de TFT (2.52) y GRIM (1.66) con memoria 1.
+  \item Contra ALLD coopera solo una de cada tres rondas (PAVLOV, una de cada dos), así que ALLD obtiene
+        contra él 2.33, menos que 2.90. Contra PAVLOV, en cambio, ALLD obtiene 2.99, más que 2.95, y por eso
+        PAVLOV era invadible con memoria 1 (Sección~\ref{sec:mech}). La memoria 2 permite recordar que ha
+        sido explotado y castigar una ronda más sin perder la capacidad de perdonar.
+\end{itemize}
+Al enfrentar los 262\,144 genomas contra él, ninguno obtiene un pago igual o mayor que el que obtiene él
+contra sí mismo: es la única mejor respuesta a sí mismo, de modo que ningún mutante puede invadir una
+población formada por él. Con $\pn=0.05$ ocurre lo mismo con \g{11\,|\,0111\,1111\,1111\,0110} (10
+ejecuciones, 2.60 contra sí mismo). Las dos primeras jugadas apenas influyen en el pago (cada una pesa
+1/150), por lo que son casi neutrales.
+
+\paragraph{Conclusión de la extensión.} Con memoria 2 la hipótesis del enunciado se cumple mejor que con
+memoria 1: con ruido moderado dominan estrategias de tipo PAVLOV (H2), aunque más duras que PAVLOV, y con
+$\pn=0.05$ la cooperación no colapsa (H3 se refuta). Por tanto, el colapso de la cooperación con ruido que
+observamos con memoria 1 depende del espacio de estrategias.
+
+%=====================================================================
 \section{Limitations}
 %=====================================================================
 \begin{itemize}
-  \item We only consider deterministic memory-1 strategies. More complex strategies (memory~2, finite
-        state machines) or stochastic ones (\emph{generous TFT}) might sustain cooperation under noise. We
-        did not study the extension proposed in the exercise; our conclusions refer to the space of 32
-        strategies.
+  % [ES] Punto reescrito (memoria 2): revisar y traducir.
+  \item Solo consideramos estrategias deterministas. La Sección~\ref{sec:m2} muestra que pasar de memoria 1
+        a memoria 2 cambia la conclusión con ruido; no hemos estudiado máquinas de estados finitos ni
+        estrategias estocásticas (\emph{generous TFT}). En memoria 2, la segunda jugada es incondicional
+        (como propone el enunciado), y la comprobación de invasión considera un único mutante en una
+        población grande; no excluye que varios mutantes neutrales acumulados por deriva la desestabilicen.
   \item We use a single set of GA parameters. The population of 100, $p_m=0.01$ and the tournament of 3
         set the strength of drift and selection. Since regime changes depend on almost neutral mutants, a
         different population size or mutation rate would change their frequency, and perhaps the stability
@@ -347,16 +444,27 @@ hypothesis holds at the extremes, but the forgiving strategy PAVLOV does not win
 because it can be exploited by ALLD and GRIM, which cannot be invaded by any memory-1 strategy. The invasion
 analysis on the matrix of expected payoffs, together with the almost neutral mutants, accounts for the
 cycles and for the bimodality.
+% [ES] Añadido (memoria 2): revisar y traducir.
+Con estrategias de memoria 2, en cambio, la cooperación sobrevive al ruido: dominan variantes de PAVLOV que
+castigan una ronda más tras ser explotadas y que ningún mutante puede invadir. Que la cooperación colapse con
+ruido depende, por tanto, de la memoria de las estrategias.
 
 \paragraph{Reproducibility.} All the code, seeds and instructions are in \texttt{README.txt}:
 \texttt{python main.py} runs the experiment and \texttt{python analysis.py} generates all the tables
-(\texttt{results/summary.txt}) and the figures of this report.
+(\texttt{memory1/results/summary.txt}) and the figures of this report.
+% [ES] Añadido (memoria 2): revisar y traducir.
+Para memoria 2, \texttt{python main\_memory2.py} y \texttt{python analysis\_memory2.py} (resultados en
+\texttt{memory2/results/summary.txt}).
 
 \paragraph{Use of generative AI tools.} We used Claude (Anthropic, Claude Opus 5.5 model, November 2026)
 as an assistant to review the initial code (it detected the problem of reusing a single noisy match per
 pair), to propose and write the exact computation of the expected payoff, the statistical analysis and
 figure script, a first draft of this report and its English translation. All the results were obtained by
 running our code, and we have reviewed, verified and edited the final text.
+% [ES] Añadido (memoria 2): revisar y traducir.
+También lo usamos para implementar la extensión de memoria 2 (el cálculo exacto con 16 estados, la caché de
+pagos y la comprobación de invasión), su análisis y un primer borrador en castellano de la
+Sección~\ref{sec:m2}.
 
 \small
 \begin{thebibliography}{9}
