@@ -151,12 +151,10 @@ def main():
         share = np.median(hist2[p]["top_freq"][:, -1])
         out.append(f"  p_noise={p} ({len(tops)} different genomes over {n_runs} runs; "
                    f"median share of the top genome in its population {share:.0%}):")
-        for k, (g, count) in enumerate(tops.most_common(3)):
-            line = f"    {format_genome(g)}   in {count} runs"
-            if k == 0:  # invasion check only for the most common one (8 s each)
-                self_payoff, best, n_ge = invasion_check(g, p)
-                line += f"   pi(G,G) {self_payoff:.3f}  best pi(Y,G) {best:.3f}  #>= {n_ge}"
-            out.append(line)
+        for g, count in tops.most_common(3):
+            self_payoff, best, n_ge = invasion_check(g, p)  # about 8 s each
+            out.append(f"    {format_genome(g)}   in {count} runs   pi(G,G) {self_payoff:.3f}  "
+                       f"best pi(Y,G) {best:.3f}  #>= {n_ge}")
     text = "\n".join(out)
     os.makedirs(RESULTS_DIR, exist_ok=True)
     with open(os.path.join(RESULTS_DIR, "summary.txt"), "w") as f:

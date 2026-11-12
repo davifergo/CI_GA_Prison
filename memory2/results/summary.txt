@@ -18,13 +18,13 @@ MOST FREQUENT GENOME AT THE LAST GENERATION (how many runs end with each one)
   invasion check: pi(G,G) and the best pi(Y,G) over all 2^18 genomes Y; '#>=' = genomes with pi(Y,G) >= pi(G,G) (1 = only G itself: no mutant can invade)
   p_noise=0.0 (29 different genomes over 30 runs; median share of the top genome in its population 11%):
     11 | 0101 0101 0111 0000   in 2 runs   pi(G,G) 2.973  best pi(Y,G) 3.000  #>= 21568
-    10 | 0101 0101 0100 0001   in 1 runs
-    10 | 0100 1101 1101 0011   in 1 runs
+    10 | 0101 0101 0100 0001   in 1 runs   pi(G,G) 2.987  best pi(Y,G) 3.000  #>= 27648
+    10 | 0100 1101 1101 0011   in 1 runs   pi(G,G) 2.987  best pi(Y,G) 3.000  #>= 26624
   p_noise=0.01 (6 different genomes over 30 runs; median share of the top genome in its population 82%):
     10 | 0110 1111 1111 0110   in 7 runs   pi(G,G) 2.901  best pi(Y,G) 2.901  #>= 1
-    10 | 0111 1111 1111 0110   in 6 runs
-    10 | 0111 0111 0111 0110   in 5 runs
+    10 | 0111 1111 1111 0110   in 6 runs   pi(G,G) 2.901  best pi(Y,G) 2.901  #>= 1
+    10 | 0111 0111 0111 0110   in 5 runs   pi(G,G) 2.901  best pi(Y,G) 2.901  #>= 1
   p_noise=0.05 (7 different genomes over 30 runs; median share of the top genome in its population 83%):
     11 | 0111 1111 1111 0110   in 10 runs   pi(G,G) 2.598  best pi(Y,G) 2.598  #>= 1
-    11 | 0111 0111 0111 0000   in 6 runs
-    11 | 0111 0111 0111 0110   in 5 runs
+    11 | 0111 0111 0111 0000   in 6 runs   pi(G,G) 2.648  best pi(Y,G) 2.889  #>= 15872
+    11 | 0111 0111 0111 0110   in 5 runs   pi(G,G) 2.599  best pi(Y,G) 2.599  #>= 1

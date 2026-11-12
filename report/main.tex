@@ -296,7 +296,7 @@ attractor (it exceeds 50\,\% of the population in half of the generations from 1
 population can cycle: GRIM drifts towards TFT, the forgiving variants invade TFT, and GRIM exploits them again. In 22
 of the 30 runs there is at least one change of regime, and in the periods dominated by OTHER the most
 common genomes are precisely \g{00100} and \g{00001} (17\,\% each), followed by TFT and ALLC.
-The forgiving variants also feed the PAVLOV peaks seen in all 30 runs (median maximum 82\,\%): PAVLOV,
+The forgiving variants also feed the PAVLOV peaks seen in all 30 runs (its maximum in each run has a median of 82\,\% and ranges from 59 to 93\,\%): PAVLOV,
 one bit away from \g{00100}, exploits them (3.80 against ALLC, 2.97 against \g{00100}, which obtains 2.78
 against itself) while cooperating with itself (2.95), until ALLD or GRIM invade it.
 Figure~\ref{fig:cycles}b shows these cycles in one run. They produce the cooperation peaks of
@@ -401,7 +401,7 @@ almost never appear, so we analyse the dominant genomes directly.
 
 \paragraph{Mechanism.} \emph{Without noise}, the situations that follow a defection almost never occur
 among cooperators, so most of the 16 response bits are not under selection and change by drift. Against the
-most frequent final genome, thousands of genomes obtain a payoff equal to the one it obtains against
+most frequent final genome, 21\,567 genomes obtain a payoff equal to the one it obtains against
 itself, or higher. The population does not converge, and drift
 sometimes makes the dominant genomes exploitable by a particular mutant. In the four collapses we
 reproduced (\texttt{report/check\_collapses.py}), the mutant spreads and the population falls into mutual defection (payoff close to 1) within
@@ -409,8 +409,8 @@ about 7 generations; cooperation returns later (in one run not before generation
 runs with a low payoff. Memory 1 has only 5 bits, so this effect is much smaller there.
 
 \emph{With noise}, errors make every situation occur, and all the bits come under selection. With
-$\pn=0.01$ the most frequent final genome is \g{10\,|\,0110\,1111\,1111\,0110} (7 runs; the other frequent
-genomes differ from it in a few bits). If the previous outcome was an agreement (CC or DD), it responds like
+$\pn=0.01$ the most frequent final genome is \g{10\,|\,0110\,1111\,1111\,0110} (7 runs; the next two, in 6 and 5
+runs, differ from it in one or three bits and cannot be invaded either). If the previous outcome was an agreement (CC or DD), it responds like
 PAVLOV (\g{0110}: it cooperates after CC and DD and defects after CD and DC); if it was a disagreement (CD
 or DC), it always defects. This has two consequences:
 \begin{itemize}
@@ -418,9 +418,10 @@ or DC), it always defects. This has two consequences:
         (PAVLOV needs only one). It therefore obtains 2.90 against itself, close to PAVLOV (2.95) and well
         above TFT (2.52) and GRIM (1.66) with memory 1.
   \item Against ALLD it cooperates only one round in three (PAVLOV, one in two), so ALLD obtains 2.33
-        against it, less than 2.90. Against PAVLOV, ALLD obtains 2.99, more than 2.95, which is why PAVLOV
+        against it, less than 2.90, so ALLD cannot invade it. In memory 1, against PAVLOV, ALLD obtains 2.99,
+        more than 2.95 of PAVLOV against itself, which is why PAVLOV
         could be invaded with memory 1 (Section~\ref{sec:mech}). With memory 2 the strategy can remember
-        that it was exploited and punish one more round while still forgiving.
+        that it was exploited and punish one more round while still forgiving, which prevents it from being invaded.
 \end{itemize}
 When we play all 262\,144 genomes against it, none obtains a payoff equal to or higher than the one it
 obtains against itself. It is the only best response to itself, so no mutant can invade a population made of
@@ -452,7 +453,8 @@ that we observe with memory 1 therefore depends on the strategy space.
   \item We use a single set of GA parameters. The population of 100, $p_m=0.01$ and the tournament of 3
         set the strength of drift and selection. Since regime changes depend on almost neutral mutants, a
         different population size or mutation rate would change their frequency, and perhaps the stability
-        of PAVLOV.
+        of PAVLOV, which peaks in every run with $\pn=0.01$ (up to 59--93\,\%) but is invaded by very small margins
+        (GRIM 2.98 and ALLD 2.99 against its 2.95).
   \item Memory 2 without noise is only reproducible on the same machine and software. Without noise many
         individuals have exactly the same fitness, and differences of $10^{-15}$ in floating-point
         arithmetic (which depend on the processor and the NumPy version) decide who wins a tournament. On
@@ -470,10 +472,13 @@ that we observe with memory 1 therefore depends on the strategy space.
         10 generations) are our own conventions; the payoffs and the tests do not depend on them.
   \item In an additional robustness check (10 runs per configuration,
         \texttt{report/robustness.py}) the conclusions hold with matches of 1000 rounds (TFT dominates in
-        10/10 without noise, GRIM in 6/10 with $\pn=0.01$ and ALLD in 6/10 with $\pn=0.05$) and with more
+        10/10 without noise, GRIM in 6/10 with $\pn=0.01$ and ALLD in 6/10 and GRIM in 2/10 with $\pn=0.05$) and with more
         noise ($\pn=0.1$: ALLD in 8/10; $\pn=0.25$: ALLD in 10/10, with a payoff of 1.70 that only reflects
         the noise). We have not explored the levels between 0 and 0.01 systematically, and the change from
-        TFT to GRIM happens somewhere in that range.
+        TFT to GRIM happens somewhere in that range. We have not tested more noise: with $\pn=0.5$
+        every action is random, the four outcomes are equally likely whatever the strategies, and everyone
+        obtains $(3+0+5+1)/4=2.25$; and $\pn>0.5$ is equivalent to noise $1-\pn$ applied to the opposite
+        strategies (all bits flipped).
 \end{itemize}
 
 %=====================================================================
