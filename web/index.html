@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="An illustrated companion to a study of evolved strategies in the iterated prisoner's dilemma: a single match in court, a population in the gallery, and three experiments." />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="./gavel.svg" type="image/svg+xml" />
+    <title>The Dilemma Court</title>
+    <script>
+      // apply a saved theme before first paint
+      try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

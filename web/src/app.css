@@ -1,0 +1,234 @@
+@import '@fontsource/im-fell-english/400.css';
+@import '@fontsource/im-fell-english/400-italic.css';
+@import '@fontsource-variable/source-serif-4/opsz.css';
+@import '@fontsource-variable/source-serif-4/opsz-italic.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+
+/* ------------------------------------------------------------------ tokens */
+:root {
+  --paper: #f3ecdf;
+  --paper-2: #ebe2d1;        /* slightly darker sheet, for inset panels */
+  --paper-3: #e1d6c1;
+  --ink: #1d1a17;
+  --ink-2: #4a433b;          /* secondary text */
+  --ink-3: #7d7366;          /* captions, axes */
+  --rule: rgba(29, 26, 23, 0.28);
+  --rule-strong: rgba(29, 26, 23, 0.7);
+  --coop: #2f5d50;
+  --coop-tint: #c7d3c6;
+  --defect: #7a1f1f;
+  --defect-tint: #e2c3b8;
+  --brass: #b08d3c;
+  --brass-tint: #eadbb4;
+  --red-ink: #a3241b;        /* the clerk's corrections */
+  --grain-blend: multiply;
+  --grain-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.38  0 0 0 0 0.28  0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-coarse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.42  0 0 0 0 0.3  0 0 0 0.1 0'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23m)'/%3E%3C/svg%3E");
+  --brass-text: #7f6320;
+
+  --font-display: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+
+  --ease-ink: cubic-bezier(0.25, 0.1, 0.25, 1);   /* plain ease, no overshoot */
+  --ease-slide: cubic-bezier(0.22, 0.61, 0.36, 1); /* decelerating, like paper on a desk */
+  --ease-strike: cubic-bezier(0.55, 0, 0.75, 0.3); /* accelerating: a gavel coming down */
+
+  --gutter: 16px;
+  --measure: 66ch;
+  color-scheme: light;
+}
+
+/* Dark mode is the same sheet printed in negative: warm black stock, cream ink. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #191612;
+    --paper-2: #211d18;
+    --paper-3: #2b261f;
+    --ink: #ece2cf;
+    --ink-2: #c3b8a3;
+    --ink-3: #8f8574;
+    --rule: rgba(236, 226, 207, 0.22);
+    --rule-strong: rgba(236, 226, 207, 0.6);
+    --coop: #7fb3a2;
+    --coop-tint: #24392f;
+    --defect: #d27a6b;
+    --defect-tint: #45231d;
+    --brass: #d4b064;
+    --brass-tint: #3d3220;
+    --red-ink: #ee7a64;
+    --grain-blend: screen;
+    --brass-text: #d4b064;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --paper: #191612;
+  --paper-2: #211d18;
+  --paper-3: #2b261f;
+  --ink: #ece2cf;
+  --ink-2: #c3b8a3;
+  --ink-3: #8f8574;
+  --rule: rgba(236, 226, 207, 0.22);
+  --rule-strong: rgba(236, 226, 207, 0.6);
+  --coop: #7fb3a2;
+  --coop-tint: #24392f;
+  --defect: #d27a6b;
+  --defect-tint: #45231d;
+  --brass: #d4b064;
+  --brass-tint: #3d3220;
+  --red-ink: #ee7a64;
+  --grain-blend: screen;
+  --brass-text: #d4b064;
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ base */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+/* paper grain: fractal noise multiplied into the sheet (screened in negative) */
+body {
+  background-image: var(--grain-fine), var(--grain-coarse);
+  background-blend-mode: var(--grain-blend);
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: 0.005em;
+}
+h2 { font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.4rem); }
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.1rem; }
+p { margin: 0 0 0.7em; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+.mono, code, kbd, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+code { font-size: 0.92em; }
+.smallcaps { font-variant-caps: all-small-caps; letter-spacing: 0.06em; }
+.kicker {
+  font-family: var(--font-body);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.09em;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+}
+.caption { font-size: 0.85rem; color: var(--ink-2); line-height: 1.4; }
+.dek { font-style: italic; color: var(--ink-2); max-width: var(--measure); }
+
+hr, .rule { border: 0; border-top: 1px solid var(--rule-strong); margin: 0; }
+.rule-double { border: 0; border-top: 3px double var(--rule-strong); }
+
+.coop { color: var(--coop); }
+.defect { color: var(--defect); }
+.brass { color: var(--brass); }
+
+/* ------------------------------------------------------------------ controls (printed-form look) */
+button, select, input { font: inherit; color: inherit; }
+.btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 1px;
+  padding: 0.3rem 0.75rem 0.35rem;
+  font-family: var(--font-body);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.07em;
+  font-size: 1rem;
+  line-height: 1.2;
+  cursor: pointer;
+  min-height: 34px;
+  transition: background-color 120ms var(--ease-ink), color 120ms var(--ease-ink);
+}
+.btn:hover { background: var(--paper-3); }
+.btn:active { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--ink-2); }
+.btn[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible, a:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+select, input[type='number'], input[type='text'] {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0.15rem 0.1rem;
+  min-height: 32px;
+}
+select { padding-right: 1.2rem; appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 9px) 55%, calc(100% - 4px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select option { background: var(--paper); color: var(--ink); }
+input[type='number'] { width: 5.5em; font-family: var(--font-mono); font-size: 0.95rem; }
+
+/* range: a ruled line with a brass marker */
+input[type='range'] {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--ink);
+  box-shadow: 0 3px 0 -2px var(--rule);
+}
+input[type='range']::-moz-range-track { height: 1px; background: var(--ink); }
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 18px;
+  margin-top: -9px;
+  background: var(--brass);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+}
+input[type='range']::-moz-range-thumb {
+  width: 11px; height: 18px; background: var(--brass); border: 1px solid var(--ink); border-radius: 0;
+  clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+}
+
+label.field { display: grid; gap: 0.1rem; font-size: 0.92rem; }
+label.field > span:first-child { font-variant-caps: all-small-caps; letter-spacing: 0.07em; color: var(--ink-2); }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ page */
+.page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
