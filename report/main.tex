@@ -476,16 +476,33 @@ cooperation collapses under noise therefore depends on how much memory the strat
 For memory 2, \texttt{python main\_memory2.py} and \texttt{python analysis\_memory2.py} (results in
 \texttt{memory2/results/summary.txt}).
 
-\paragraph{Use of generative AI tools.} We used Claude (Anthropic, Claude Opus 5.5 model, November 2026)
-as an assistant to review the initial code (it detected the problem of reusing a single noisy match per
-pair), to propose and write the exact computation of the expected payoff, the statistical analysis and
-figure script, a first draft of this report and its English translation. All the results were obtained by
-running our code, and we have reviewed, verified and edited the final text.
-We also used it to implement the memory-2 extension (the exact computation with 16 states, the payoff cache
-and the invasion check), its analysis, and a first draft of Section~\ref{sec:m2} in Spanish together with its
-English translation. Finally, we used it to review the whole project before submission: it re-ran every
-experiment, wrote the simulator check (\texttt{report/check\_exact.py}) and detected the
-reproducibility issue of memory 2 without noise.
+\paragraph{Use of generative AI tools.} The first implementation of the main GA code was written from scratch, and
+the first interpretation of the results was done without AI. After that, we used Claude (Anthropic, Claude Opus 5.5 model, November 2026)
+as an assistant: it proposed optimisations and provided scripts to extract the CSV files and plots
+from the main results, which helped us deepen the experiments and the conclusions.
+
+The main contributions of the AI were the following:
+\begin{itemize}
+    \item Use of the exact expected payoff instead of playing a single noisy match per pair,
+    thus ensuring a far more accurate result that does not depend on luck. Done for both memory 1 and memory 2.
+    \item Improvement of the efficiency of memory 2 with a partial cache, since a single run without storing any
+    strategy-pair match took minutes.
+    \item Detection of a reproducibility issue in memory 2.
+    \item Extraction of tables and figures, as well as the proposal of the statistical tests best suited to our results.
+    \item Help with the literature review, for example by proposing \cite{axelrod1987}.
+    \item First draft of the report from the conclusions we extracted, based on the tables and plots.
+    \item Correction of grammatical and syntactical errors in the draft.
+\end{itemize}
+
+However, we did not take a passive role in these improvements. All of these tasks went through tens of iterations
+and were constantly reviewed and corrected by us.
+
+This, lets us state that the results were obtained by running our code, and we have reviewed, verified and edited all
+the code and the final text.
+
+Finally, we want to state that, as MAI students, our focus is to produce the best possible results, and thus, learn from them.
+We aim for correctness and efficiency, collaborating in the process with powerful AI tools, learning how to use them and
+always taking an active role in the process.
 
 \small
 \begin{thebibliography}{9}

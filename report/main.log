@@ -515,9 +515,10 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             See the microtype manual for details.
  [1
 
-] [2]
+]
 File: figures//fig_mean_payoff.pdf Graphic file (type pdf)
 <use figures//fig_mean_payoff.pdf>
+ [2]
 File: figures//fig_final_payoff.pdf Graphic file (type pdf)
 <use figures//fig_final_payoff.pdf>
 File: figures//strategy_legend.pdf Graphic file (type pdf)
@@ -555,9 +556,9 @@ File: figures//fig_run_p005.pdf Graphic file (type pdf)
  [5]
 File: figures//fig_m2_summary.pdf Graphic file (type pdf)
 <use figures//fig_m2_summary.pdf>
- [6] [7] [8]
+ [6] [7] [8] [9]
 (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 3447728433024862A79AF70A23D86CBE;900.
+(rerunfilecheck)             Checksum: E5FD99EF56FF8741411F9E3C6A0662BD;866.
  )
-Output written on main.xdv (8 pages, 273088 bytes).
+Output written on main.xdv (9 pages, 299076 bytes).
