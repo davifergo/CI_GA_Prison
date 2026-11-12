@@ -55,6 +55,7 @@ def sim_m2(g1, g2, p):
 
 def z_scores(exact, sims):
     sims = np.asarray(sims)
+    # Division by np.sqrt(sims.shape[1])) to correct the normalization of a mean.
     return (sims.mean(axis=1) - exact) / (sims.std(axis=1) / np.sqrt(sims.shape[1]))
 
 

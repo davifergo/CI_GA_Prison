@@ -219,7 +219,7 @@ def main():
         time_frac = {c: float((hist[p][c][:, 100:] > 0.5).mean()) for c in COLUMNS}
         out.append(f"  p_noise={p}: runs with >= 1 change of regime: {n_switch}/{n_runs}; transitions: "
                    + ", ".join(f"{a}->{b} {n}" for (a, b), n in sorted(trans.items(), key=lambda kv: -kv[1])))
-        out.append("    fraction of generations 101-500 with a strategy > 50%: "
+        out.append("    fraction of generations 100-500 with a strategy > 50%: "
                    + ", ".join(f"{c} {v:.2f}" for c, v in time_frac.items() if v > 0.005))
         mask = hist[p]["OTHER"] > 0.5
         if mask.any():

@@ -217,8 +217,8 @@ lowest to highest final payoff.}\label{fig:comp}
 population. We say that a strategy dominates a run if it exceeds 50\,\% of the population on average over
 the last 100 generations.
 \begin{itemize}
-  \item \textbf{$\pn=0$:} TFT dominates in 29 of 30 runs (median 78\,\%) and holds a regime 90\,\% of the
-        time from generation 100 onwards. Almost all the rest (OTHER, 17\,\%) is the genome \g{00100},
+  \item \textbf{$\pn=0$:} TFT dominates in 29 of 30 runs (median 78\,\%) and exceeds 50\,\% of the
+        population in 90\,\% of the generations from 100 onwards. Almost all the rest (OTHER, 17\,\%) is the genome \g{00100},
         which differs from TFT only in its response to DD; among cooperators that entry is never used, so
         it is a neutral variant that drifts freely. \textbf{H1 is confirmed.}
   \item \textbf{$\pn=0.01$:} GRIM dominates in 19 of 30 runs (median 53\,\%), followed by TFT (13\,\%).
@@ -232,7 +232,9 @@ the last 100 generations.
 \section{Mechanism}\label{sec:mech}
 %=====================================================================
 To explain these results we use the matrix of expected payoffs of the classical strategies
-(Figure~\ref{fig:matrix}), computed with the same exact model as the fitness. In a large population made
+(Figure~\ref{fig:matrix}), computed with the same exact model as the fitness. Altough there are results about non-named
+strategies mentioned in the following subsections that don't appear in the figure, they have been extracted from the
+complete results present in the project. In a large population made
 almost entirely of a resident strategy $X$, a mutant $Y$ can invade it if $\pi(Y,X)>\pi(X,X)$, or if
 $\pi(Y,X)=\pi(X,X)$ and $\pi(Y,Y)>\pi(X,Y)$, where $\pi(A,B)$ is the payoff of $A$ against $B$.
 Table~\ref{tab:inv} applies this criterion to each noise level. Moreover, since mutation usually changes a
@@ -273,9 +275,13 @@ keeps generating. PAVLOV can be invaded by ALLD: against ALLD it alternates C an
 obtains only 0.5, whereas TFT and GRIM obtain 0.99. The two one-bit mutants of TFT that defect (STFT
 \g{10101}, which starts with D, and \g{01101}, which defects after CC) drag TFT into an alternation of
 retaliation that gives it a payoff of about 2.5, whereas GRIM punishes forever and obtains only 1.02--1.03.
-This is why GRIM dominates in the first generations, while there are still many defectors (initial peak in
-Figure~\ref{fig:freq}a), but TFT displaces it in 25 of the 30 runs once the population cooperates, because
-it earns more than GRIM or PAVLOV against its own mutants.
+In contrast, against the two one-bit mutants of GRIM that defect (\g{10111}, which starts with D, and
+\g{01111}, which defects after CC), GRIM and TFT obtain exactly the same (0.99 and 1.01).
+GRIM dominates in the first generations (initial peak in Figure~\ref{fig:freq}a) because the random
+initial population is full of strategies that do not retaliate, which GRIM exploits (e.g.\ 4.97 against
+\g{10000}, versus 2.99 for TFT). Once the population cooperates, however, TFT displaces GRIM (25 of the 30
+runs): against the mutants of TFT it earns much more than GRIM (2.5 versus 1.02--1.03) or PAVLOV (2.0),
+and against the mutants of GRIM it earns the same.
 
 \paragraph{With moderate noise ($\pn=0.01$).} Noise breaks the equilibrium of TFT: one error triggers a
 chain of alternating retaliation, and the payoff of TFT against TFT drops to 2.52. More forgiving variants
@@ -286,25 +292,33 @@ by GRIM (4.00 against ALLC) and ALLD (4.94). PAVLOV, which obtains much more aga
 (2.52) or GRIM (1.66), can be invaded by ALLD (2.99) and by GRIM (2.98), which exploit the fact that PAVLOV
 returns to cooperation after mutual defection. In contrast, GRIM cannot be invaded by \emph{any} of the 32
 memory-1 strategies, although TFT is almost tied with it (1.655 versus 1.658). GRIM is therefore the usual
-attractor (it holds a regime 50\,\% of the time), and because it is almost neutral with respect to TFT the
+attractor (it exceeds 50\,\% of the population in half of the generations from 100 onwards, pooling all runs), and because it is almost neutral with respect to TFT the
 population can cycle: GRIM drifts towards TFT, the forgiving variants invade TFT, and GRIM exploits them again. In 22
 of the 30 runs there is at least one change of regime, and in the periods dominated by OTHER the most
 common genomes are precisely \g{00100} and \g{00001} (17\,\% each), followed by TFT and ALLC.
+The forgiving variants also feed the PAVLOV peaks seen in all 30 runs (median maximum 82\,\%): PAVLOV,
+one bit away from \g{00100}, exploits them (3.80 against ALLC, 2.97 against \g{00100}, which obtains 2.78
+against itself) while cooperating with itself (2.95), until ALLD or GRIM invade it.
 Figure~\ref{fig:cycles}b shows these cycles in one run. They produce the cooperation peaks of
 Figure~\ref{fig:payoff}, and they are why the final mean payoff (2.01) is higher than that of a pure GRIM
 population (1.66).
 
 \paragraph{With high noise ($\pn=0.05$).} Errors are so frequent (in a pair, one every 10 rounds on
-average) that no reciprocal strategy sustains cooperation: TFT against TFT obtains 2.30 and PAVLOV is
-exploited by ALLD (2.93 versus 2.78). Only two non-invadable states remain, ALLD and GRIM, and each is
+average) that no cooperative strategy is stable: reciprocal ones either cooperate poorly with themselves
+(TFT obtains 2.30 against TFT) or are exploited (PAVLOV by ALLD, 2.93 versus 2.78), and unconditional
+cooperators such as ALLC (2.95 against itself) are invaded by any defector. Only two non-invadable states remain, ALLD and GRIM, and each is
 stable against the other: ALLD obtains 1.18 against GRIM, less than GRIM against GRIM (1.31), and GRIM
 obtains 1.14 against ALLD, less than ALLD against ALLD (1.15). However, the population does not stay fixed
-in one of them: it spends 57\,\% of the time in an ALLD regime and 34\,\% in a GRIM regime, and 18 of the 30
-runs change regime at least once. Almost neutral mutants make these transitions possible: the one-bit
+in one of them: ALLD exceeds 50\,\% of the population in 57\,\% of the generations from 100 onwards (pooling all runs) and GRIM in
+34\,\% (in both cases almost always in stretches of at least 10 generations), and 18 of the 30 runs change
+regime at least once. Almost neutral mutants make these transitions possible: the one-bit
 mutants \g{10111} and \g{01111} of ALLD lose only 0.002 and 0.006 with respect to ALLD, so they spread by
 drift, and \g{10111} (GRIM that starts by defecting, the most frequent genome in the OTHER phases) is a
-single bit away from GRIM. The bimodality of Figure~\ref{fig:comp}c is therefore a snapshot of a process that
-alternates between two defecting states (Figure~\ref{fig:cycles}c).
+single bit away from GRIM. The TFT peaks (above 30\,\% in 22 runs) arise inside GRIM phases: TFT is one bit
+away from GRIM and almost neutral against it (1.301 versus 1.310), so it spreads by drift, and once common
+it earns more against itself (2.30) than GRIM does against it (1.50); it then drifts towards PAVLOV and
+forgiving variants, which ALLD and GRIM exploit again. The bimodality of Figure~\ref{fig:comp}c is therefore a snapshot of a process that
+alternates between two defecting strategies (Figure~\ref{fig:cycles}c).
 
 \begin{figure}[t]
 \centering
@@ -327,9 +341,8 @@ exploit that weakness before PAVLOV can establish itself.
 The exercise asks whether more complex strategies change the conclusion. We repeat the experiment with
 memory-2 strategies, which decide on the basis of the last two outcomes, and keep everything else the same:
 the parameters of Table~\ref{tab:params}, 30 runs per noise level, the same seeds and the same response
-variable. The runs are not paired, though: genomes of different length consume the random number stream
-differently, so a memory-1 run and the memory-2 run with the same seed diverge from the first generation.
-We therefore compare memory 1 and memory 2 with the Mann--Whitney test for independent samples.
+variable. Runs of the memory 1 and memory 2 with the same seed are unrelated (the genomes differ), so we compare the 30 memory-1 and
+30 memory-2 values with the Mann--Whitney test for independent samples.
 
 \paragraph{Representation and payoff computation.} A memory-2 strategy has 18 bits: the actions in rounds
 1 and 2 (unconditional, as the exercise proposes) and the response to each of the 16 pairs (previous
@@ -343,17 +356,22 @@ memory-2 pairs), and with noise they agree with the mean of 20\,000 simulated ma
 error (all differences below 2 standard errors).
 We write a genome as \g{ab~|~CC~CD~DC~DD}: the first two moves and, for each previous outcome (CC, CD,
 DC, DD), a group of 4 bits with the response to each current outcome.
+The named memory-1 strategies are still included: a memory-2 genome is equivalent to one of them if it has
+the same first move and its four groups equal the last 4 bits of the memory-1 genome, so it ignores the
+outcome two rounds back. For example, TFT (\g{00101}) is \g{0x\,|\,0101\,0101\,0101\,0101}; the second
+move $x$ is fixed, so it can differ from TFT only in round 2.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{fig_m2_summary}
 \caption{Memory 2. (a) Mean payoff of the population per generation: median and interquartile range of the
 30 runs. (b) Response variable of each run with memory 1 (grey) and memory 2 (blue). (c) Share of the
-population held by the most frequent genome (median over the runs).}
+population held by the most frequent genome of each run (median over the runs; this genome can differ
+between runs and over time).}
 \label{fig:m2}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}[b]
 \centering\small
 \caption{Mean payoff over the last 100 generations with memory 1 and memory 2 (median of 30 runs, with a
 95\,\% bootstrap CI for memory 2). $\Atwelve$ is the probability that a memory-2 run beats a memory-1 run;
@@ -373,7 +391,9 @@ $\pn$ & Memory 1 & Memory 2 [95\,\% CI] & Difference & $\Atwelve$ \\
 Figure~\ref{fig:m2}): with $\pn=0.05$ the median payoff is 2.55, against 1.17 with memory 1, and every
 memory-2 run beats every memory-1 run ($\Atwelve=1$). Without noise the difference goes the other way and is
 small: memory 2 stays slightly lower (2.91 against 2.98) and varies more, with 4 of the 30 runs between
-2.54 and 2.62. The population also behaves differently depending on the noise (Figure~\ref{fig:m2}c). With
+2.54 and 2.62. The population also behaves differently depending on the noise (Figure~\ref{fig:m2}c: for each run and
+generation we take the share of the most frequent genome, which can differ between runs, and plot the
+median of the 30 shares). With
 noise it converges in about 40 generations to a genome that holds 83\,\% of the population (a median of
 about 13 distinct genomes), whereas without noise the most frequent genome holds only 15\,\% and about 43
 genomes coexist. Since each particular genome is very rare, the named strategies of Section~\ref{sec:res}
@@ -383,8 +403,10 @@ almost never appear, so we analyse the dominant genomes directly.
 among cooperators, so most of the 16 response bits are not under selection and change by drift. Against the
 most frequent final genome, thousands of genomes obtain a payoff equal to the one it obtains against
 itself, or higher. The population does not converge, and drift
-sometimes accumulates exploitable strategies, which explains the runs with a low payoff. Memory 1 has only 5
-bits, so this effect is much smaller there.
+sometimes makes the dominant genomes exploitable by a particular mutant. In the four collapses we
+reproduced (\texttt{report/check\_collapses.py}), the mutant spreads and the population falls into mutual defection (payoff close to 1) within
+about 7 generations; cooperation returns later (in one run not before generation 500), which explains the
+runs with a low payoff. Memory 1 has only 5 bits, so this effect is much smaller there.
 
 \emph{With noise}, errors make every situation occur, and all the bits come under selection. With
 $\pn=0.01$ the most frequent final genome is \g{10\,|\,0110\,1111\,1111\,0110} (7 runs; the other frequent
@@ -490,8 +512,9 @@ The main contributions of the AI were the following:
     \item Detection of a reproducibility issue in memory 2.
     \item Extraction of tables and figures, as well as the proposal of the statistical tests best suited to our results.
     \item Help with the literature review, for example by proposing \cite{axelrod1987}.
-    \item First draft of the report from the conclusions we extracted, based on the tables and plots.
+    \item First draft of the report from the conclusions we extracted, based on the code, tables and plots.
     \item Correction of grammatical and syntactical errors in the draft.
+    \item Finally, created an interactive web page based on our code and results.
 \end{itemize}
 
 However, we did not take a passive role in these improvements. All of these tasks went through tens of iterations

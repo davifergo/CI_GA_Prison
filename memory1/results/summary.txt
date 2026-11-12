@@ -75,13 +75,13 @@ PAYOFF MATRIX p_noise=0.05 (expected payoff per round of row vs column)
 
 REGIMES: a regime = one strategy above 50% for at least 10 consecutive generations
   p_noise=0.0: runs with >= 1 change of regime: 25/30; transitions: GRIM->TFT 25, TFT->OTHER 15, OTHER->TFT 13, TFT->GRIM 6, OTHER->GRIM 2
-    fraction of generations 101-500 with a strategy > 50%: TFT 0.90, GRIM 0.01, OTHER 0.05
+    fraction of generations 100-500 with a strategy > 50%: TFT 0.90, GRIM 0.01, OTHER 0.05
     genomes when OTHER > 50%: 00100 0.34, 00101 0.25, 00001 0.11, 11011 0.05
   p_noise=0.01: runs with >= 1 change of regime: 22/30; transitions: OTHER->GRIM 21, GRIM->OTHER 18, ALLD->OTHER 11, GRIM->ALLD 10, ALLD->GRIM 8, OTHER->ALLD 7
-    fraction of generations 101-500 with a strategy > 50%: ALLC 0.01, ALLD 0.07, TFT 0.11, PAVLOV 0.02, GRIM 0.50, OTHER 0.23
+    fraction of generations 100-500 with a strategy > 50%: ALLC 0.01, ALLD 0.07, TFT 0.11, PAVLOV 0.02, GRIM 0.50, OTHER 0.23
     genomes when OTHER > 50%: 00100 0.17, 00001 0.17, 00101 0.08, 00000 0.08
   p_noise=0.05: runs with >= 1 change of regime: 18/30; transitions: GRIM->ALLD 9, OTHER->GRIM 8, ALLD->GRIM 5, GRIM->OTHER 5, OTHER->ALLD 4, ALLD->OTHER 3
-    fraction of generations 101-500 with a strategy > 50%: ALLD 0.57, TFT 0.02, PAVLOV 0.01, GRIM 0.34, OTHER 0.05
+    fraction of generations 100-500 with a strategy > 50%: ALLD 0.57, TFT 0.02, PAVLOV 0.01, GRIM 0.34, OTHER 0.05
     genomes when OTHER > 50%: 10111 0.24, 00100 0.16, 00001 0.08, 00110 0.06
 
 ONE-BIT MUTANTS: pi(mutant, resident) - pi(resident, resident)  (> 0 invades, ~0 neutral drift)
