@@ -19,7 +19,14 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
     python main_memory2.py        # GA: 3 noise levels x 30 runs (about 8 minutes)
     python analysis_memory2.py    # statistics + figures (about 30 seconds)
 
-   Everything is seeded, so the results are identical on every execution.
+   Everything is seeded, so the results are identical on every execution on the same machine.
+   Exception: memory 2 without noise has many exact fitness ties, and floating-point
+   differences of 1e-15 between machines or NumPy versions can change who wins a tournament,
+   so on another computer those runs diverge (the conclusions do not change; see Limitations
+   in the report). Memory 1 and memory 2 with noise reproduce exactly.
+
+   Optional check of the exact payoff computation against an independent simulator:
+    python report/check_exact.py  # about 1 minute
 
 3. FILES
 --------
@@ -46,6 +53,8 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
    report/robustness.py                        extra check cited in the report (1000 rounds,
                                                p_noise 0.1 and 0.25); writes
                                                report/robustness.txt. Run: python report/robustness.py
+   report/check_exact.py                       checks the exact payoff computation (memory 1
+                                               and memory 2) against a Monte Carlo simulator.
 
    memory2/results/history_noise_<p>.csv       one row per (run, generation): mean payoff,
                                                frequency of the memory-1 strategies embedded
@@ -54,7 +63,8 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
                                                frequent genome and its share.
    memory2/results/summary.txt                 all the memory-2 tables used in the report.
    memory2/figures/fig*.pdf / .png             memory-2 figures (fig5_report is the one in
-                                               the report).
+                                               the report; analysis_memory2.py also copies it
+                                               to report/figures/fig_m2_summary.pdf).
 
 4. MODEL
 --------

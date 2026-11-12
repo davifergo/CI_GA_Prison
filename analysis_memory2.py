@@ -9,9 +9,11 @@ Writes:
   memory2/figures/fig3_memory1_vs_memory2  boxplots of memory 1 and memory 2 side by side
   memory2/figures/fig4_diversity           distinct genomes and share of the most frequent genome
   memory2/figures/fig5_report              figure of the report: 3 panels at their final size
+  report/figures/fig_m2_summary.pdf        copy of fig5_report under the name used by report/main.tex
 """
 import csv
 import os
+import shutil
 from collections import Counter
 
 import matplotlib.pyplot as plt
@@ -215,6 +217,10 @@ def main():
     for ax, letter in zip(axes, "abc"):
         ax.set_title(f"({letter})", loc="left", fontsize=9)
     save(fig, "fig5_report")
+    # the same figure, under the name the LaTeX report uses
+    fig5 = os.path.join(FIG_DIR, "fig5_report.pdf")
+    os.makedirs(os.path.join("report", "figures"), exist_ok=True)
+    shutil.copyfile(fig5, os.path.join("report", "figures", "fig_m2_summary.pdf"))
 
 
 if __name__ == "__main__":

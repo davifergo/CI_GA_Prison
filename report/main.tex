@@ -53,8 +53,8 @@ $\pn=0.01$ and alternations between ALLD and GRIM with $\pn=0.05$.
 
 \noindent As an extension, we repeat the experiment with memory-2 strategies (18 bits). With them,
 cooperation survives the noise: the median final payoff is 2.84 with $\pn=0.01$ and 2.55 with $\pn=0.05$
-($\Atwelve=1$ against memory 1), because the dominant strategies are PAVLOV-like strategies that punish one
-extra round, and no memory-2 mutant can invade them.
+($\Atwelve=1$ against memory 1), because the most frequent final strategies are PAVLOV-like strategies that
+punish one extra round, and no memory-2 mutant can invade the most frequent one.
 \end{abstract}
 
 %=====================================================================
@@ -106,8 +106,7 @@ noise.
 We thus compute, once per noise level, the $32\times 32$ payoff matrix. This is preferable to simulating
 one noisy match per pair: a single match has a large variance (e.g.\ GRIM against GRIM with $\pn=0.01$:
 mean 1.66, standard deviation 0.55 across matches), and if it is reused for every copy of the same pair, a
-single stroke of luck decides the fitness of a whole class of strategies. In a preliminary test with
-simulation, this source of error even changed the dominant strategy with $\pn=0.05$. Using 30 runs with
+single stroke of luck decides the fitness of a whole class of strategies. Using 30 runs with
 different seeds would average part of this error out, but the exact expectation removes it from the fitness
 altogether.
 
@@ -328,7 +327,9 @@ exploit that weakness before PAVLOV can establish itself.
 The exercise asks whether more complex strategies change the conclusion. We repeat the experiment with
 memory-2 strategies, which decide on the basis of the last two outcomes, and keep everything else the same:
 the parameters of Table~\ref{tab:params}, 30 runs per noise level, the same seeds and the same response
-variable.
+variable. The runs are not paired, though: genomes of different length consume the random number stream
+differently, so a memory-1 run and the memory-2 run with the same seed diverge from the first generation.
+We therefore compare memory 1 and memory 2 with the Mann--Whitney test for independent samples.
 
 \paragraph{Representation and payoff computation.} A memory-2 strategy has 18 bits: the actions in rounds
 1 and 2 (unconditional, as the exercise proposes) and the response to each of the 16 pairs (previous
@@ -336,7 +337,10 @@ outcome, current outcome). With $2^{18}=262\,144$ strategies it is no longer pos
 precompute the full payoff matrix, which would take about 550\,GB. We compute the expected payoff with the
 same exact method, but the state of the Markov chain is now the pair of the last two outcomes (16 states),
 and we only compute it for the pairs of genomes that appear in the population, caching them during the
-run. We checked the computation against the mean of 20\,000 simulated matches (differences below 0.002).
+run. We checked both exact computations against an independent simulator
+(\texttt{report/check\_exact.py}): without noise they match exactly (all 1024 memory-1 pairs and 300 random
+memory-2 pairs), and with noise they agree with the mean of 20\,000 simulated matches within Monte Carlo
+error (all differences below 2 standard errors).
 We write a genome as \g{ab~|~CC~CD~DC~DD}: the first two moves and, for each previous outcome (CC, CD,
 DC, DD), a group of 4 bits with the response to each current outcome.
 
@@ -377,8 +381,8 @@ almost never appear, so we analyse the dominant genomes directly.
 
 \paragraph{Mechanism.} \emph{Without noise}, the situations that follow a defection almost never occur
 among cooperators, so most of the 16 response bits are not under selection and change by drift. Against the
-most frequent final genome, 21\,568 genomes obtain a payoff equal to or higher than the one it obtains
-against itself, and some exceed it (3.00 against 2.97). The population does not converge, and drift
+most frequent final genome, thousands of genomes obtain a payoff equal to the one it obtains against
+itself, or higher. The population does not converge, and drift
 sometimes accumulates exploitable strategies, which explains the runs with a low payoff. Memory 1 has only 5
 bits, so this effect is much smaller there.
 
@@ -401,6 +405,14 @@ obtains against itself. It is the only best response to itself, so no mutant can
 it. The same holds with $\pn=0.05$ for \g{11\,|\,0111\,1111\,1111\,0110} (10 runs, 2.60 against itself). The
 first two moves barely affect the payoff (each one weighs 1/150), so they are almost neutral.
 
+Not every final genome is like this. In 6 of the 30 runs with $\pn=0.05$ the most frequent genome is
+\g{11\,|\,0111\,0111\,0111\,0000}, which cooperates only after CC, like GRIM over one round, except when
+the previous outcome was DD, after which it always cooperates. This one \emph{can} be invaded:
+15\,872 genomes obtain against it at least what it obtains against itself (2.65), up to 2.89. In practice
+it coexists with its one-bit mutant \g{11\,|\,0111\,0111\,0111\,0001}, which obtains 0.13 more against it
+but only 1.97 against itself, so neither takes over. These mixed populations (45--67\,\% of the most
+frequent genome at the end) give the lowest memory-2 payoffs with $\pn=0.05$ (2.49--2.54).
+
 \paragraph{Conclusion of the extension.} With memory 2 the hypothesis of the exercise fits better than with
 memory 1: with moderate noise PAVLOV-like strategies dominate (H2), although they are harsher than PAVLOV,
 and with $\pn=0.05$ cooperation does not collapse (H3 is refuted). The collapse of cooperation under noise
@@ -419,6 +431,14 @@ that we observe with memory 1 therefore depends on the strategy space.
         set the strength of drift and selection. Since regime changes depend on almost neutral mutants, a
         different population size or mutation rate would change their frequency, and perhaps the stability
         of PAVLOV.
+  \item Memory 2 without noise is only reproducible on the same machine and software. Without noise many
+        individuals have exactly the same fitness, and differences of $10^{-15}$ in floating-point
+        arithmetic (which depend on the processor and the NumPy version) decide who wins a tournament. On
+        another computer the same seeds gave a run that diverged at generation 163 and slightly different
+        figures for $\pn=0$: median 2.913 (unchanged), 95\,\% CI [2.896, 2.933], minimum 2.467, about 47
+        distinct genomes, and a most frequent final genome that is tied, not beaten, by 8\,192 genomes
+        (21\,568 in our run, some of which exceed it: 3.00 against 2.97). The conclusions do not change
+        ($\Atwelve=0$ against memory 1 in both cases). Memory 1 and memory 2 with noise reproduced exactly (up to $10^{-15}$).
   \item An individual does not play against itself. With a population of 100 the
         effect is small, but not zero.
   \item The mean payoff mixes cooperation and noise: with high noise, even ALLD against ALLD
@@ -445,8 +465,9 @@ hypothesis holds at the extremes, but the forgiving strategy PAVLOV does not win
 because it can be exploited by ALLD and GRIM, which cannot be invaded by any memory-1 strategy. The invasion
 analysis on the matrix of expected payoffs, together with the almost neutral mutants, accounts for the
 cycles and for the bimodality.
-With memory-2 strategies, on the other hand, cooperation survives the noise: the dominant strategies are
-PAVLOV variants that punish one more round after being exploited, and no mutant can invade them. Whether
+With memory-2 strategies, on the other hand, cooperation survives the noise: the most frequent final
+strategies are PAVLOV variants that punish one more round after being exploited, and no mutant can invade
+the most frequent one. Whether
 cooperation collapses under noise therefore depends on how much memory the strategies have.
 
 \paragraph{Reproducibility.} All the code, seeds and instructions are in \texttt{README.txt}:
@@ -462,7 +483,9 @@ figure script, a first draft of this report and its English translation. All the
 running our code, and we have reviewed, verified and edited the final text.
 We also used it to implement the memory-2 extension (the exact computation with 16 states, the payoff cache
 and the invasion check), its analysis, and a first draft of Section~\ref{sec:m2} in Spanish together with its
-English translation.
+English translation. Finally, we used it to review the whole project before submission: it re-ran every
+experiment, wrote the simulator check (\texttt{report/check\_exact.py}) and detected the
+reproducibility issue of memory 2 without noise.
 
 \small
 \begin{thebibliography}{9}
