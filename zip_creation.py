@@ -16,7 +16,7 @@ import os
 import zipfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-NAME = "CI_GA_Prison"
+NAME = "CI_Ex1_DavidFernandez_PolMarsol"
 ZIP_PATH = os.path.join(ROOT, f"{NAME}.zip")
 SKIP = {"__pycache__", ".DS_Store"}
 
