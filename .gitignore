@@ -2,3 +2,6 @@
 .idea/
 __pycache__/
 *.pyc
+
+# delivery zip (built by zip_creation.py)
+CI_GA_Prison.zip

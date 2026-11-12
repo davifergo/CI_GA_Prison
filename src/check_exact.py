@@ -1,6 +1,7 @@
 """Check the exact expected-payoff computation against an independent Monte Carlo simulator.
 
-Run from the project root:  python report/check_exact.py   (about 1 minute)
+Run from the project root:  python src/check_exact.py   (about 1 minute)
+Writes results/check_exact.txt
 
 - Without noise a match is deterministic, so the exact payoff must equal one simulated match.
 - With noise, the exact payoff must agree with the mean of N_SIM simulated matches up to
@@ -9,18 +10,22 @@ Run from the project root:  python report/check_exact.py   (about 1 minute)
 """
 import os
 import random
-import sys
 
 import numpy as np
 
-sys.path.insert(0, os.getcwd())
-import main as m1            # noqa: E402
-import main_memory2 as m2    # noqa: E402
+import main as m1
+import main_memory2 as m2
 
 PAY = {(0, 0): 3, (0, 1): 0, (1, 0): 5, (1, 1): 1}
 ROUNDS = 150
 N_SIM = 20_000
 rng = random.Random(2026)
+lines = []  # printed and saved to results/check_exact.txt
+
+
+def out(text):
+    print(text)
+    lines.append(text)
 
 
 def flip(a, p):
@@ -64,21 +69,24 @@ if __name__ == "__main__":
     M0 = m1.payoff_matrix(0.0)
     d = max(abs(M0[i, j] - sim_m1(m1.GENOMES[i], m1.GENOMES[j], 0.0))
             for i in range(32) for j in range(32))
-    print(f"memory 1, p_noise=0: max |exact - simulated| over 1024 pairs = {d:.2e}")
+    out(f"memory 1, p_noise=0: max |exact - simulated| over 1024 pairs = {d:.2e}")
     pairs = [(5, 5), (5, 7), (6, 31), (7, 7), (0, 6), (21, 13)]
     for p in (0.01, 0.05):
         M = m1.payoff_matrix(p)
         sims = [[sim_m1(m1.GENOMES[i], m1.GENOMES[j], p) for _ in range(N_SIM)] for i, j in pairs]
         exact = np.array([M[i, j] for i, j in pairs])
-        print(f"memory 1, p_noise={p}: z = {np.round(z_scores(exact, sims), 1)}")
+        out(f"memory 1, p_noise={p}: z = {np.round(z_scores(exact, sims), 1)}")
 
     # ---- memory 2: 300 random pairs without noise, 8 random pairs with noise ----
     G1 = np.array([[rng.randint(0, 1) for _ in range(18)] for _ in range(300)])
     G2 = np.array([[rng.randint(0, 1) for _ in range(18)] for _ in range(300)])
     f1, _ = m2.expected_matches(G1, G2, ROUNDS, 0.0)
     d = max(abs(f1[k] - sim_m2(G1[k], G2[k], 0.0)) for k in range(300))
-    print(f"memory 2, p_noise=0: max |exact - simulated| over 300 random pairs = {d:.2e}")
+    out(f"memory 2, p_noise=0: max |exact - simulated| over 300 random pairs = {d:.2e}")
     for p in (0.01, 0.05):
         f1, _ = m2.expected_matches(G1[:8], G2[:8], ROUNDS, p)
         sims = [[sim_m2(G1[k], G2[k], p) for _ in range(N_SIM)] for k in range(8)]
-        print(f"memory 2, p_noise={p}: z = {np.round(z_scores(f1, sims), 1)}")
+        out(f"memory 2, p_noise={p}: z = {np.round(z_scores(f1, sims), 1)}")
+
+    with open(os.path.join(m1.ROOT, "results", "check_exact.txt"), "w") as f:
+        f.write("\n".join(lines) + "\n")

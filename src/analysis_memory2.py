@@ -2,18 +2,16 @@
 Run after main_memory2.py (and main.py, for the comparison with memory 1).
 
 Writes:
-  memory2/results/summary.txt              final payoff, memory 1 vs memory 2 tests, top genomes,
-                                           invasion check of the most frequent final genomes
-  memory2/figures/fig1_mean_payoff         mean payoff over generations (median and IQR of the runs)
-  memory2/figures/fig2_final_payoff        boxplot of the final payoff per noise level
-  memory2/figures/fig3_memory1_vs_memory2  boxplots of memory 1 and memory 2 side by side
-  memory2/figures/fig4_diversity           distinct genomes and share of the most frequent genome
-  memory2/figures/fig5_report              figure of the report: 3 panels at their final size
-  report/figures/fig_m2_summary.pdf        copy of fig5_report under the name used by report/main.tex
+  results/memory2/summary.txt                      final payoff, memory 1 vs memory 2 tests, top
+                                                   genomes and their invasion check
+  results/memory2/figures/fig1_mean_payoff         mean payoff over generations (median and IQR)
+  results/memory2/figures/fig2_final_payoff        boxplot of the final payoff per noise level
+  results/memory2/figures/fig3_memory1_vs_memory2  boxplots of memory 1 and memory 2 side by side
+  results/memory2/figures/fig4_diversity           distinct genomes and share of the top genome
+  results/memory2/figures/fig5_report              figure 7 of the report: 3 panels at final size
 """
 import csv
 import os
-import shutil
 from collections import Counter
 
 import matplotlib.pyplot as plt
@@ -27,7 +25,7 @@ from analysis import (a12, boot_median_ci, load_history, NOISE_COLORS,
 from main_memory2 import (NOISE_LEVELS, N_GEN, ROUNDS, RESULTS_DIR, N_BITS, SHIFTS,
                           expected_matches)
 
-FIG_DIR = os.path.join("memory2", "figures")
+FIG_DIR = os.path.join(RESULTS_DIR, "figures")
 MEMORY_COLORS = {1: "#898781", 2: "#2a78d6"}  # grey = memory 1, blue = memory 2
 
 
@@ -215,10 +213,6 @@ def main():
     for ax, letter in zip(axes, "abc"):
         ax.set_title(f"({letter})", loc="left", fontsize=9)
     save(fig, "fig5_report")
-    # the same figure, under the name the LaTeX report uses
-    fig5 = os.path.join(FIG_DIR, "fig5_report.pdf")
-    os.makedirs(os.path.join("report", "figures"), exist_ok=True)
-    shutil.copyfile(fig5, os.path.join("report", "figures", "fig_m2_summary.pdf"))
 
 
 if __name__ == "__main__":

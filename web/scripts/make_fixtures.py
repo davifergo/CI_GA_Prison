@@ -11,7 +11,7 @@ import os
 import random
 import sys
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), "src"))  # the Python code lives in src/
 import main as m  # noqa: E402
 
 OUT = os.path.join("web", "src", "lib", "model", "__fixtures__", "python.json")

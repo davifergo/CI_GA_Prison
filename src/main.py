@@ -1,9 +1,9 @@
 """Iterated prisoner's dilemma: evolution of memory-1 strategies with a GA.
 
 Runs N_RUNS independent GA runs for every noise level and writes, per noise level:
-  memory1/results/history_noise_<p>.csv   one row per (run, generation): mean payoff,
+  results/memory1/history_noise_<p>.csv   one row per (run, generation): mean payoff,
                                   frequency of the named strategies and of all 32 genomes
-  memory1/results/payoff_matrix_noise_<p>.csv   expected payoff per round of every pair of genomes
+  results/memory1/payoff_matrix_noise_<p>.csv   expected payoff per round of every pair of genomes
 """
 import csv
 import itertools
@@ -27,7 +27,9 @@ N_RUNS = 30
 # Independent (non-paired) seeds: noise level k uses seeds 100*k ... 100*k + N_RUNS - 1
 SEED_OFFSET = 100
 
-RESULTS_DIR = os.path.join("memory1", "results")
+# project root (the folder that contains src/ and results/), so the scripts can be run from anywhere
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(ROOT, "results", "memory1")
 
 # Actions: 0 = C, 1 = D.  PAYOFF[(my action, opponent's action)] = my payoff
 T, R, P, S = 5, 3, 1, 0

@@ -2,10 +2,10 @@
 Same GA and exact payoffs as main.py, 10 runs per configuration:
   - longer matches (1000 rounds) at the three core noise levels
   - higher noise levels (0.1, 0.25) at 150 rounds
-Run from the repository root:  python report/robustness.py
+Run from the project root:  python src/robustness.py   (a few minutes)
+Writes results/memory1/robustness.txt
 """
-import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os
 from multiprocessing import Pool
 import numpy as np
 import main as M
@@ -31,5 +31,5 @@ if __name__ == "__main__":
                      + ", ".join(f"{c} {n}/{N}" for c, n in dom.items() if n))
     text = "\n".join(lines)
     print(text)
-    with open(os.path.join(os.path.dirname(__file__), "robustness.txt"), "w") as f:
+    with open(os.path.join(M.RESULTS_DIR, "robustness.txt"), "w") as f:
         f.write(text + "\n")

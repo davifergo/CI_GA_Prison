@@ -1,5 +1,23 @@
 Iterated prisoner's dilemma: when does cooperation emerge?
 Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, exercise 8
+David Fernández Gómez, Pol Marsol Torras
+
+0. CONTENTS
+-----------
+   README.txt           this file
+   requirements.txt     Python packages
+   report.pdf           the report
+   src/                 all the code (run every script from this folder's root, see 2)
+   results/             all the outputs used in the report, as produced by the code:
+     memory1/           main experiment (memory-1 strategies)
+       figures/         memory-1 figures of the report (Figures 1-6)
+     memory2/           extension (memory-2 strategies)
+       figures/         memory-2 figures (fig5_report = Figure 7 of the report)
+     check_exact.txt    check of the exact payoff computation (memory 1 and memory 2)
+
+   Every script finds its input and output folders by itself (relative to the folder that
+   contains src/ and results/), so nothing has to be moved or edited. Running a script
+   overwrites its files in results/ with the same content (see 2 for the one exception).
 
 1. SETUP (Python >= 3.10)
 -------------------------
@@ -9,62 +27,71 @@ Computational Intelligence (CI-MAI) - Evolutionary Computation practical work, e
 
    Tested with Python 3.13, deap 1.4, numpy 2.5, scipy 1.18, matplotlib 3.11.
 
-2. REPRODUCE THE RESULTS (run from the project root)
-----------------------------------------------------
+2. REPRODUCE THE RESULTS (from the folder that contains README.txt)
+-------------------------------------------------------------------
    Memory 1 (main experiment):
-    python main.py                # GA: 3 noise levels x 30 runs (about 1 minute)
-    python analysis.py            # statistics + figures (a few seconds)
+    python src/main.py              # GA: 3 noise levels x 30 runs (about 1 minute)
+    python src/analysis.py          # statistics + figures (a few seconds)
 
    Memory 2 (extension; needs the memory-1 results for the comparison):
-    python main_memory2.py        # GA: 3 noise levels x 30 runs (about 8 minutes)
-    python analysis_memory2.py    # statistics + figures (about 30 seconds)
+    python src/main_memory2.py      # GA: 3 noise levels x 30 runs (about 8 minutes)
+    python src/analysis_memory2.py  # statistics, invasion checks, figures (about 2 minutes)
+
+   Extra checks cited in the report (optional, independent of each other):
+    python src/robustness.py        # memory 1 with 1000 rounds and p_noise 0.1, 0.25
+                                    # (a few minutes) -> results/memory1/robustness.txt
+    python src/check_exact.py       # exact payoffs vs a Monte Carlo simulator
+                                    # (about 1 minute) -> results/check_exact.txt
+    python src/check_collapses.py   # why some memory-2 runs without noise have a low payoff
+                                    # (about 30 s; needs main_memory2.py results)
+                                    # -> results/memory2/check_collapses.txt
 
    Everything is seeded, so the results are identical on every execution on the same machine.
    Exception: memory 2 without noise has many exact fitness ties, and floating-point
    differences of 1e-15 between machines or NumPy versions can change who wins a tournament,
    so on another computer those runs diverge (the conclusions do not change; see Limitations
-   in the report). Memory 1 and memory 2 with noise reproduce exactly.
-
-   Optional check of the exact payoff computation against an independent simulator:
-    python report/check_exact.py  # about 1 minute
+   in the report). Memory 1 and memory 2 with noise reproduce exactly. The PDF figures embed
+   their creation date, so the files differ in that field only.
 
 3. FILES
 --------
-   main.py               memory 1: GA (DEAP) and exact payoff computation.
-   analysis.py           memory 1: pilot, effect sizes, tests, payoff matrices, invasion
-                         analysis, regimes, one-bit mutants, figures.
-   main_memory2.py       memory 2: GA and exact payoff computation (computed on demand,
-                         with a cache).
-   analysis_memory2.py   memory 2: final payoff, comparison with memory 1, diversity,
-                         most frequent genomes and their invasion check, figures.
-   report/               LaTeX source of the report and the figures it uses.
+   src/main.py               memory 1: GA (DEAP) and exact payoff computation.
+   src/analysis.py           memory 1: pilot, effect sizes, tests, payoff matrices, invasion
+                             analysis, regimes, one-bit mutants, figures.
+   src/main_memory2.py       memory 2: GA and exact payoff computation (computed on demand,
+                             with a cache).
+   src/analysis_memory2.py   memory 2: final payoff, comparison with memory 1, diversity,
+                             three most frequent final genomes and their invasion check, figures.
+   src/robustness.py         memory 1 with longer matches and more noise (10 runs each).
+   src/check_exact.py        exact payoff computation vs an independent simulator.
+   src/check_collapses.py    reruns four memory-2 runs without noise and inspects the whole
+                             population around each collapse of the payoff (the meaning of
+                             every column is explained at the top of the script).
 
-   memory1/results/history_noise_<p>.csv       one row per (run, generation): mean payoff of
-                                               the population, frequency of the named
-                                               strategies (ALLC, ALLD, TFT, PAVLOV, GRIM,
-                                               STFT, OTHER) and of all 32 genomes (g<bits>).
-   memory1/results/payoff_matrix_noise_<p>.csv expected payoff per round of every genome
-                                               (row) against every genome (column), 32 x 32.
-   memory1/results/final_per_run.csv           response variable of every run.
-   memory1/results/stats_pairwise.csv          pairwise comparisons between noise levels.
-   memory1/results/summary.txt                 all the memory-1 tables used in the report.
-   report/figures/fig_*.pdf                    memory-1 figures of the report (one PDF per
-                                               plot), written by analysis.py.
-   report/robustness.py                        extra check cited in the report (1000 rounds,
-                                               p_noise 0.1 and 0.25); writes
-                                               report/robustness.txt. Run: python report/robustness.py
-   report/check_exact.py                       checks the exact payoff computation (memory 1
-                                               and memory 2) against a Monte Carlo simulator.
+   results/memory1/history_noise_<p>.csv        one row per (run, generation): mean payoff of
+                                                the population, frequency of the named
+                                                strategies (ALLC, ALLD, TFT, PAVLOV, GRIM,
+                                                STFT, OTHER) and of all 32 genomes (g<bits>).
+   results/memory1/payoff_matrix_noise_<p>.csv  expected payoff per round of every genome
+                                                (row) against every genome (column), 32 x 32.
+   results/memory1/final_per_run.csv            response variable of every run.
+   results/memory1/stats_pairwise.csv           pairwise comparisons between noise levels.
+   results/memory1/summary.txt                  all the memory-1 tables used in the report.
+   results/memory1/figures/fig_*.pdf            memory-1 figures of the report (one PDF per
+                                                plot; <p> in the name: p00 = 0, p001 = 0.01,
+                                                p005 = 0.05).
+   results/memory1/robustness.txt               output of src/robustness.py.
 
-   memory2/results/history_noise_<p>.csv       one row per (run, generation): mean payoff,
-                                               frequency of the memory-1 strategies embedded
-                                               in memory 2 and of TF2T (in practice always
-                                               OTHER), number of distinct genomes, most
-                                               frequent genome and its share.
-   memory2/results/summary.txt                 all the memory-2 tables used in the report.
-   memory2/figures/fig*.pdf / .png             memory-2 figures (fig5_report is the one in
-                                               the report; analysis_memory2.py also copies it
-                                               to report/figures/fig_m2_summary.pdf).
+   results/memory2/history_noise_<p>.csv        one row per (run, generation): mean payoff,
+                                                frequency of the memory-1 strategies embedded
+                                                in memory 2 and of TF2T (in practice always
+                                                OTHER), number of distinct genomes, most
+                                                frequent genome and its share.
+   results/memory2/summary.txt                  all the memory-2 tables used in the report.
+   results/memory2/figures/fig*.pdf / .png      memory-2 figures (fig5_report is Figure 7 of
+                                                the report).
+   results/memory2/check_collapses.txt          output of src/check_collapses.py.
+   results/check_exact.txt                      output of src/check_exact.py.
 
 4. MODEL
 --------

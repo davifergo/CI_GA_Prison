@@ -1,0 +1,6 @@
+memory 1, p_noise=0: max |exact - simulated| over 1024 pairs = 0.00e+00
+memory 1, p_noise=0.01: z = [ 0.6  0.7  0.4  0.4  0.4 -0.7]
+memory 1, p_noise=0.05: z = [-0.1  0.9  0.6  1.9 -0.1  0.8]
+memory 2, p_noise=0: max |exact - simulated| over 300 random pairs = 0.00e+00
+memory 2, p_noise=0.01: z = [-1.3 -1.4  0.3  0.6 -0.3  0.4  0.1 -0.6]
+memory 2, p_noise=0.05: z = [-1.2  0.3 -0.3 -0.8 -0.  -1.3 -0.2 -1. ]

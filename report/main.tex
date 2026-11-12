@@ -20,7 +20,7 @@
 
 \captionsetup{font=small,labelfont=bf}
 \captionsetup[sub]{font=small}
-\graphicspath{{figures/}}
+So \graphicspath{{../results/memory1/figures/}{../results/memory2/figures/}}
 \newcommand{\pn}{p_{\text{noise}}}
 \newcommand{\Atwelve}{\hat{A}_{12}}
 \newcommand{\g}[1]{\texttt{#1}}   % genome
@@ -55,6 +55,10 @@ $\pn=0.01$ and alternations between ALLD and GRIM with $\pn=0.05$.
 cooperation survives the noise: the median final payoff is 2.84 with $\pn=0.01$ and 2.55 with $\pn=0.05$
 ($\Atwelve=1$ against memory 1), because the most frequent final strategies are PAVLOV-like strategies that
 punish one extra round, and no memory-2 mutant can invade the most frequent one.
+
+\noindent We have also created, with AI, an interactive website (\url{https://davifergo.github.io/CI_GA_Prison/})
+that shows, in real time, matches between strategies at different noise levels and the evolution of the
+population with our settings.
 \end{abstract}
 
 %=====================================================================
@@ -232,9 +236,8 @@ the last 100 generations.
 \section{Mechanism}\label{sec:mech}
 %=====================================================================
 To explain these results we use the matrix of expected payoffs of the classical strategies
-(Figure~\ref{fig:matrix}), computed with the same exact model as the fitness. Altough there are results about non-named
-strategies mentioned in the following subsections that don't appear in the figure, they have been extracted from the
-complete results present in the project. In a large population made
+(Figure~\ref{fig:matrix}), computed with the same exact model as the fitness; the payoffs of unnamed genomes quoted below come from the
+full $32\times32$ matrices (\texttt{results/memory1}). In a large population made
 almost entirely of a resident strategy $X$, a mutant $Y$ can invade it if $\pi(Y,X)>\pi(X,X)$, or if
 $\pi(Y,X)=\pi(X,X)$ and $\pi(Y,Y)>\pi(X,Y)$, where $\pi(A,B)$ is the payoff of $A$ against $B$.
 Table~\ref{tab:inv} applies this criterion to each noise level. Moreover, since mutation usually changes a
@@ -341,7 +344,7 @@ exploit that weakness before PAVLOV can establish itself.
 The exercise asks whether more complex strategies change the conclusion. We repeat the experiment with
 memory-2 strategies, which decide on the basis of the last two outcomes, and keep everything else the same:
 the parameters of Table~\ref{tab:params}, 30 runs per noise level, the same seeds and the same response
-variable. Runs of the memory 1 and memory 2 with the same seed are unrelated (the genomes differ), so we compare the 30 memory-1 and
+variable. Memory-1 and memory-2 runs with the same seed are unrelated (the genomes differ), so we compare the 30 memory-1 and
 30 memory-2 values with the Mann--Whitney test for independent samples.
 
 \paragraph{Representation and payoff computation.} A memory-2 strategy has 18 bits: the actions in rounds
@@ -351,7 +354,7 @@ precompute the full payoff matrix, which would take about 550\,GB. We compute th
 same exact method, but the state of the Markov chain is now the pair of the last two outcomes (16 states),
 and we only compute it for the pairs of genomes that appear in the population, caching them during the
 run. We checked both exact computations against an independent simulator
-(\texttt{report/check\_exact.py}): without noise they match exactly (all 1024 memory-1 pairs and 300 random
+(\texttt{src/check\_exact.py}): without noise they match exactly (all 1024 memory-1 pairs and 300 random
 memory-2 pairs), and with noise they agree with the mean of 20\,000 simulated matches within Monte Carlo
 error (all differences below 2 standard errors).
 We write a genome as \g{ab~|~CC~CD~DC~DD}: the first two moves and, for each previous outcome (CC, CD,
@@ -363,7 +366,7 @@ move $x$ is fixed, so it can differ from TFT only in round 2.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_m2_summary}
+\includegraphics[width=\textwidth]{fig5_report}
 \caption{Memory 2. (a) Mean payoff of the population per generation: median and interquartile range of the
 30 runs. (b) Response variable of each run with memory 1 (grey) and memory 2 (blue). (c) Share of the
 population held by the most frequent genome of each run (median over the runs; this genome can differ
@@ -404,7 +407,7 @@ among cooperators, so most of the 16 response bits are not under selection and c
 most frequent final genome, 21\,567 genomes obtain a payoff equal to the one it obtains against
 itself, or higher. The population does not converge, and drift
 sometimes makes the dominant genomes exploitable by a particular mutant. In the four collapses we
-reproduced (\texttt{report/check\_collapses.py}), the mutant spreads and the population falls into mutual defection (payoff close to 1) within
+reproduced (\texttt{src/check\_collapses.py}), the mutant spreads and the population falls into mutual defection (payoff close to 1) within
 about 7 generations; cooperation returns later (in one run not before generation 500), which explains the
 runs with a low payoff. Memory 1 has only 5 bits, so this effect is much smaller there.
 
@@ -419,13 +422,15 @@ or DC), it always defects. This has two consequences:
         above TFT (2.52) and GRIM (1.66) with memory 1.
   \item Against ALLD it cooperates only one round in three (PAVLOV, one in two), so ALLD obtains 2.33
         against it, less than 2.90, so ALLD cannot invade it. In memory 1, against PAVLOV, ALLD obtains 2.99,
-        more than 2.95 of PAVLOV against itself, which is why PAVLOV
+        more than the 2.95 that PAVLOV obtains against itself, which is why PAVLOV
         could be invaded with memory 1 (Section~\ref{sec:mech}). With memory 2 the strategy can remember
         that it was exploited and punish one more round while still forgiving, which prevents it from being invaded.
 \end{itemize}
 When we play all 262\,144 genomes against it, none obtains a payoff equal to or higher than the one it
 obtains against itself. It is the only best response to itself, so no mutant can invade a population made of
-it. The same holds with $\pn=0.05$ for \g{11\,|\,0111\,1111\,1111\,0110} (10 runs, 2.60 against itself). The
+it. With $\pn=0.05$ the most frequent genome, \g{11\,|\,0111\,1111\,1111\,0110} (10 runs, 2.60 against
+itself), differs from it only in the second move and in one response, behaves in the same way (ALLD obtains
+2.28 against it) and is also the only best response to itself. The
 first two moves barely affect the payoff (each one weighs 1/150), so they are almost neutral.
 
 Not every final genome is like this. In 6 of the 30 runs with $\pn=0.05$ the most frequent genome is
@@ -460,8 +465,8 @@ that we observe with memory 1 therefore depends on the strategy space.
         arithmetic (which depend on the processor and the NumPy version) decide who wins a tournament. On
         another computer the same seeds gave a run that diverged at generation 163 and slightly different
         figures for $\pn=0$: median 2.913 (unchanged), 95\,\% CI [2.896, 2.933], minimum 2.467, about 47
-        distinct genomes, and a most frequent final genome that is tied, not beaten, by 8\,192 genomes
-        (21\,568 in our run, some of which exceed it: 3.00 against 2.97). The conclusions do not change
+        distinct genomes, and a most frequent final genome that is tied, not beaten, by 8\,191 other genomes
+        (21\,567 in our run, some of which exceed it: 3.00 against 2.97). The conclusions do not change
         ($\Atwelve=0$ against memory 1 in both cases). Memory 1 and memory 2 with noise reproduced exactly (up to $10^{-15}$).
   \item An individual does not play against itself. With a population of 100 the
         effect is small, but not zero.
@@ -471,7 +476,7 @@ that we observe with memory 1 therefore depends on the strategy space.
   \item The definitions of dominance and regime (50\,\% of the population,
         10 generations) are our own conventions; the payoffs and the tests do not depend on them.
   \item In an additional robustness check (10 runs per configuration,
-        \texttt{report/robustness.py}) the conclusions hold with matches of 1000 rounds (TFT dominates in
+        \texttt{src/robustness.py}) the conclusions hold with matches of 1000 rounds (TFT dominates in
         10/10 without noise, GRIM in 6/10 with $\pn=0.01$ and ALLD in 6/10 and GRIM in 2/10 with $\pn=0.05$) and with more
         noise ($\pn=0.1$: ALLD in 8/10; $\pn=0.25$: ALLD in 10/10, with a payoff of 1.70 that only reflects
         the noise). We have not explored the levels between 0 and 0.01 systematically, and the change from
@@ -497,11 +502,8 @@ strategies are PAVLOV variants that punish one more round after being exploited,
 the most frequent one. Whether
 cooperation collapses under noise therefore depends on how much memory the strategies have.
 
-\paragraph{Reproducibility.} All the code, seeds and instructions are in \texttt{README.txt}:
-\texttt{python main.py} runs the experiment and \texttt{python analysis.py} generates all the tables
-(\texttt{memory1/results/summary.txt}) and the figures of this report.
-For memory 2, \texttt{python main\_memory2.py} and \texttt{python analysis\_memory2.py} (results in
-\texttt{memory2/results/summary.txt}).
+\paragraph{Reproducibility.} All the code (\texttt{src/}), seeds and instructions are in \texttt{README.txt};
+every table and figure of this report is written to \texttt{results/memory1} and \texttt{results/memory2}.
 
 \paragraph{Use of generative AI tools.} The first implementation of the main GA code was written from scratch, and
 the first interpretation of the results was done without AI. After that, we used Claude (Anthropic, Claude Opus 5.5 model, November 2026)
@@ -509,7 +511,7 @@ as an assistant: it proposed optimisations and provided scripts to extract the C
 from the main results, which helped us deepen the experiments and the conclusions.
 
 The main contributions of the AI were the following:
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{0pt}
     \item Use of the exact expected payoff instead of playing a single noisy match per pair,
     thus ensuring a far more accurate result that does not depend on luck. Done for both memory 1 and memory 2.
     \item Improvement of the efficiency of memory 2 with a partial cache, since a single run without storing any
@@ -519,21 +521,18 @@ The main contributions of the AI were the following:
     \item Help with the literature review, for example by proposing \cite{axelrod1987}.
     \item First draft of the report from the conclusions we extracted, based on the code, tables and plots.
     \item Correction of grammatical and syntactical errors in the draft.
-    \item Finally, created an interactive web page based on our code and results.
+    \item Creation of an interactive web page based on our code and results (\url{https://davifergo.github.io/CI_GA_Prison/}).
 \end{itemize}
 
 However, we did not take a passive role in these improvements. All of these tasks went through tens of iterations
-and were constantly reviewed and corrected by us.
-
-This, lets us state that the results were obtained by running our code, and we have reviewed, verified and edited all
+and were constantly reviewed and corrected by us. This lets us state that the results were obtained by running our code, and we have reviewed, verified and edited all
 the code and the final text.
-
-Finally, we want to state that, as MAI students, our focus is to produce the best possible results, and thus, learn from them.
+Finally, we want to state that, as MAI students, our focus is to produce the best possible results and to learn from them.
 We aim for correctness and efficiency, collaborating in the process with powerful AI tools, learning how to use them and
 always taking an active role in the process.
 
 \small
-\begin{thebibliography}{9}
+\begin{thebibliography}{9}\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
 \bibitem{arcuri2011} A.~Arcuri, L.~Briand. A practical guide for using statistical tests to assess randomized
   algorithms in software engineering. \emph{Proc.\ ICSE}, 1--10, 2011.
 \bibitem{axelrod1987} R.~Axelrod. The evolution of strategies in the iterated prisoner's dilemma. In

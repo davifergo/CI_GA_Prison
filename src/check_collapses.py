@@ -1,7 +1,7 @@
 """Why do some memory-2 runs without noise have a low payoff?
 
-Run from the project root:  python report/check_collapses.py > report/check_collapses.txt
-(about 30 s)
+Run from the project root:  python src/check_collapses.py   (about 30 s)
+Writes results/memory2/check_collapses.txt
 
 In some runs without noise the mean payoff suddenly falls from about 2.9 to about 1 (a
 "collapse") and later recovers. The history CSV only stores a summary of each generation
@@ -42,18 +42,22 @@ to about 1: the population ends up defecting.
 import csv
 import os
 import random
-import sys
 from collections import Counter
 
 import numpy as np
 from deap import algorithms, base, creator, tools
 
-sys.path.insert(0, os.getcwd())
-import main_memory2 as m    # noqa: E402
+import main_memory2 as m
 
 ALLD = (1,) * m.N_BITS  # 18 bits set to 1 = always defect
 # Collapses found in history_noise_0.0.csv: (seed, first generation with payoff < 2.6)
 CASES = [(5, 178), (5, 253), (17, 456), (28, 174)]
+lines = []  # printed and saved to results/memory2/check_collapses.txt
+
+
+def out(text):
+    print(text)
+    lines.append(text)
 
 
 def snapshots(seed, gens):
@@ -105,8 +109,8 @@ csv_payoff = {(int(r["seed"]), int(r["gen"])): float(r["mean_payoff"])
 
 for seed, g0 in CASES:
     snaps = snapshots(seed, set(range(g0 - 25, g0 + 8)))
-    print(f"\n== seed {seed}, collapse at generation {g0}")
-    print(" gen  payoff (csv)    nonretal exploit mutualD  top                      share | grown")
+    out(f"\n== seed {seed}, collapse at generation {g0}")
+    out(" gen  payoff (csv)    nonretal exploit mutualD  top                      share | grown")
     prev = None  # copies of each genome in the previous generation
     for gen in sorted(snaps):
         pop = [g for g, _ in snaps[gen]]
@@ -143,6 +147,9 @@ for seed, g0 in CASES:
             au, _ = pay([ALLD], [u])  # ALLD against u
             grown = (f"{name(u)} +{gain[u]} fit {fu:.2f} "
                      f"(vs top {ut[0]:.2f}/{tu[0]:.2f}, ALLD gets {au[0]:.2f})")
-        print(f" {gen:3d}  {fit.mean():.3f} ({csv_payoff[(seed, gen)]:.3f})  {nonretal:6.2f} "
+        out(f" {gen:3d}  {fit.mean():.3f} ({csv_payoff[(seed, gen)]:.3f})  {nonretal:6.2f} "
               f"{exploit:7.2f} {mutual_d:7.2f}  {name(top)} {top_count / len(pop):.2f} | {grown}")
         prev = cnt
+
+with open(os.path.join(m.RESULTS_DIR, "check_collapses.txt"), "w") as f:
+    f.write("\n".join(lines) + "\n")

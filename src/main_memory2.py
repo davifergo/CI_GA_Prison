@@ -11,7 +11,7 @@ precomputed as in main.py: the expected payoff of a pair is computed only when t
 appears in the population, and it is cached for the rest of the run.
 
 Runs N_RUNS independent GA runs for every noise level and writes, per noise level:
-  memory2/results/history_noise_<p>.csv   one row per (run, generation)
+  results/memory2/history_noise_<p>.csv   one row per (run, generation)
 """
 import csv
 import os
@@ -36,7 +36,9 @@ N_RUNS = 30
 SEED_OFFSET = 100
 MAX_CACHE = 2_000_000  # cached pairs per run before the cache is emptied (memory limit)
 
-RESULTS_DIR = os.path.join("memory2", "results")
+# project root (the folder that contains src/ and results/), so the scripts can be run from anywhere
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(ROOT, "results", "memory2")
 
 # ---------------------------------------------------------------- game
 # Actions: 0 = C, 1 = D.  An outcome is o = 2*a1 + a2, so o = 0, 1, 2, 3 = CC, CD, DC, DD

@@ -75,7 +75,7 @@ npm run preview    # serve dist/ on http://localhost:4173
   noisy runs 100 and 200 against `main_memory2.py` (fixture from `scripts/make_fixtures_m2.py`).
 
 The reference values are in `src/lib/model/__fixtures__/python.json`. To regenerate them
-after changing `main.py`, run from the repository root:
+after changing `src/main.py`, run from the repository root:
 
 ```bash
 .venv/bin/python web/scripts/make_fixtures.py

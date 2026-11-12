@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), "src"))  # the Python code lives in src/
 import main_memory2 as m2  # noqa: E402
 
 OUT = os.path.join("web", "src", "lib", "model", "__fixtures__", "python_m2.json")
